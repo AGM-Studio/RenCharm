@@ -1,0 +1,25 @@
+<idea-plugin>
+    <id>xyz.agmstudio.rencharm</id>
+    <name>RenCharm</name>
+    <description>Ren’Py language support for PyCharm</description>
+    <vendor email="ashenguard@agmstudio.xyz">Ashenguard</vendor>
+
+    <idea-version since-build="251" until-build="260.*"/>
+    <depends>com.intellij.modules.python</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType
+                name="Ren'Py"
+                language="RenPy"
+                description="Ren'Py Script File"
+                implementationClass="xyz.agmstudio.rencharm.lang.RenpyFileType"
+                icon="/icons/rpy.png"
+                extensions="rpy"
+        />
+        <lang.syntaxHighlighterFactory
+                language="RenPy"
+                implementationClass="xyz.agmstudio.rencharm.highlighting.RenpySyntaxHighlighterFactory"
+        />
+
+    </extensions>
+</idea-plugin>
