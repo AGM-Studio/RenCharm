@@ -84,7 +84,7 @@ public class RenpyLexer extends LexerBase {
             do tokenEnd++;
             while (tokenEnd < bufferEnd && Character.isJavaIdentifierPart(buffer.charAt(tokenEnd)));
             String word = buffer.subSequence(tokenStart, tokenEnd).toString();
-            tokenType = KEYWORDS.contains(word) ? KEYWORD : IDENTIFIER;
+            tokenType = RenpyKeywords.ALL.contains(word) ? KEYWORD : IDENTIFIER;
             return;
         }
 

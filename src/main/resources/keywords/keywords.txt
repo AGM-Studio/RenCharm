@@ -1,0 +1,33 @@
+# ─── Ren'Py script language ───────────────────────────
+define
+label
+jump
+return
+if
+else
+elif
+while
+not
+scene
+show
+hide
+menu
+call
+with
+window
+play
+stop
+queue
+voice
+pause
+extend
+default
+image
+
+# ─── Screen language ─────────────────────────────────
+screen
+vbox
+hbox
+text
+button
+imagebutton
