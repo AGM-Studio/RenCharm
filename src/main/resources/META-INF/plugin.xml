@@ -16,6 +16,13 @@
                 icon="/icons/rpy.png"
                 extensions="rpy"
         />
+        <fileType
+                name="Ren'Py compiled"
+                language="RenPy Compiled"
+                implementationClass="xyz.agmstudio.rencharm.lang.compiled.RenpyCompiledFileType"
+                extensions="rpyc"
+                binary="true"
+        />
         <lang.syntaxHighlighterFactory
                 language="RenPy"
                 implementationClass="xyz.agmstudio.rencharm.highlighting.RenpySyntaxHighlighterFactory"
@@ -24,5 +31,6 @@
                 implementationClass="xyz.agmstudio.rencharm.highlighting.RenpyColorSettingsPage"
                 displayName="Ren'Py"
         />
+        <postStartupActivity implementation="xyz.agmstudio.rencharm.RenCharmStartupActivity" dumbAware="true" />
     </extensions>
 </idea-plugin>
