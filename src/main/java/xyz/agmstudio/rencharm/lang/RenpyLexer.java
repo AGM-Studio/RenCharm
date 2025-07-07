@@ -6,8 +6,6 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
-
 import static xyz.agmstudio.rencharm.psi.RenpyTokenTypes.*;
 
 public class RenpyLexer extends LexerBase {
@@ -19,12 +17,6 @@ public class RenpyLexer extends LexerBase {
     private int tokenEnd;
     private IElementType tokenType;
 
-    private static final Set<String> KEYWORDS = Set.of(
-            "define","label","jump","return","if","else","elif","while","python",
-            "init","scene","show","hide","menu","call","with","window","play","stop",
-            "queue","voice","pause","extend","default","image"
-    );
-
     // ─── LexerBase required overrides ───────────────────────────────────────────
     @Override public void start(@NotNull CharSequence buf,int start,int end,int _state) {
         buffer     = buf;
@@ -34,11 +26,11 @@ public class RenpyLexer extends LexerBase {
         advance();
     }
     @Override public int getState() { return 0; }
-    @Override public int getTokenStart()          { return tokenStart; }
-    @Override public int getTokenEnd()            { return tokenEnd;   }
+    @Override public int getTokenStart() { return tokenStart; }
+    @Override public int getTokenEnd() { return tokenEnd;   }
+    @Override public int getBufferEnd() { return bufferEnd; }
     @Override public @Nullable IElementType getTokenType() { return tokenType; }
     @Override public @NotNull CharSequence getBufferSequence() { return buffer; }
-    @Override public int getBufferEnd()          { return bufferEnd; }
 
     // ─── Core scanning logic ────────────────────────────────────────────────────
     @Override public void advance() {
@@ -79,12 +71,32 @@ public class RenpyLexer extends LexerBase {
             return;
         }
 
-        // 4️⃣  identifier / keyword --------------------------------------------
+        // 4️⃣  numbers ----------------------------------------------------------
+        if (Character.isDigit(c) || (c == '.' && tokenEnd + 1 < bufferEnd && Character.isDigit(buffer.charAt(tokenEnd + 1)))) {
+            boolean seenDot = (c == '.');
+            tokenEnd++;
+
+            while (tokenEnd < bufferEnd) {
+                char ch = buffer.charAt(tokenEnd);
+                if (Character.isDigit(ch)) tokenEnd++;
+                else if (ch == '.' && !seenDot) {
+                    seenDot = true;
+                    tokenEnd++;
+                } else break;
+            }
+            tokenType = CONSTANT;
+            return;
+        }
+
+        // 5️⃣  identifier / keyword / booleans ---------------------------------
         if (Character.isJavaIdentifierStart(c)) {
             do tokenEnd++;
             while (tokenEnd < bufferEnd && Character.isJavaIdentifierPart(buffer.charAt(tokenEnd)));
+
             String word = buffer.subSequence(tokenStart, tokenEnd).toString();
-            tokenType = RenpyKeywords.ALL.contains(word) ? KEYWORD : IDENTIFIER;
+            if (word.equals("True") || word.equals("False")) tokenType = CONSTANT;
+            else if (RenpyKeywords.ALL.contains(word)) tokenType = KEYWORD;
+            else tokenType = IDENTIFIER;
             return;
         }
 
