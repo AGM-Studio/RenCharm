@@ -1,4 +1,4 @@
-package xyz.agmstudio.rencharm.highlighting;
+package xyz.agmstudio.rencharm.highlight;
 
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;
@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RenpySyntaxHighlighterFactory extends SyntaxHighlighterFactory {
-    @NotNull @Override public SyntaxHighlighter getSyntaxHighlighter(@Nullable Project project, @Nullable VirtualFile virtualFile) {
+    @Override public @NotNull SyntaxHighlighter getSyntaxHighlighter(Project project, @Nullable VirtualFile virtualFile) {
         return new RenpySyntaxHighlighter();
     }
 }

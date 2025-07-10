@@ -42,5 +42,6 @@ bin/
 .DS_Store
 
 ### Intelij ###
-.idea
-.intellijPlatform
+/.idea
+/.intellijPlatform
+/tools

@@ -10,11 +10,15 @@ java {
 
 repositories {
     mavenCentral()
-    intellijPlatform { defaultRepositories() }
+    intellijPlatform {
+        defaultRepositories()
+        localPlatformArtifacts()
+    }
 }
 
 dependencies {
     intellijPlatform {
-        local("C:/Program Files/JetBrains/PyCharm 2025.1.2")   // <— adjust the path
+        local('C://IC/CharmIC')
     }
+    implementation files("tools/python/lib/python.jar")
 }

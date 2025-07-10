@@ -19,18 +19,21 @@
         <fileType
                 name="Ren'Py compiled"
                 language="RenPy Compiled"
-                implementationClass="xyz.agmstudio.rencharm.lang.compiled.RenpyCompiledFileType"
+                implementationClass="xyz.agmstudio.rencharm.lang.RenpyCompiledFileType"
                 extensions="rpyc"
                 binary="true"
         />
+
+        <lang.parserDefinition
+                language="RenPy"
+                implementationClass="xyz.agmstudio.rencharm.parser.RenpyParserDefinition"
+        />
         <lang.syntaxHighlighterFactory
                 language="RenPy"
-                implementationClass="xyz.agmstudio.rencharm.highlighting.RenpySyntaxHighlighterFactory"
+                implementationClass="xyz.agmstudio.rencharm.highlight.RenpySyntaxHighlighterFactory"
         />
-        <colorSettingsPage
-                implementationClass="xyz.agmstudio.rencharm.highlighting.RenpyColorSettingsPage"
-                displayName="Ren'Py"
-        />
+
+        <colorSettingsPage implementationClass="xyz.agmstudio.rencharm.highlight.RenpyColorSettingsPage"/>
         <postStartupActivity implementation="xyz.agmstudio.rencharm.RenCharmStartupActivity" dumbAware="true" />
     </extensions>
 </idea-plugin>

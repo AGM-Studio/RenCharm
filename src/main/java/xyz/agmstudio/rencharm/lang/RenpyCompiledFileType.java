@@ -1,4 +1,4 @@
-package xyz.agmstudio.rencharm.lang.compiled;
+package xyz.agmstudio.rencharm.lang;
 
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +9,7 @@ import javax.swing.*;
 public class RenpyCompiledFileType extends LanguageFileType {
     public static final RenpyCompiledFileType INSTANCE = new RenpyCompiledFileType();
 
-    private RenpyCompiledFileType() { super(RenpyCompiledLanguage.INSTANCE); }
+    private RenpyCompiledFileType() { super(Language.INSTANCE); }
 
     @NotNull @Override public String getName()             { return "Ren'Py compiled"; }
     @NotNull @Override public String getDescription()      { return "Ren'Py .rpyc byte‑code file"; }
@@ -17,4 +17,12 @@ public class RenpyCompiledFileType extends LanguageFileType {
     @Nullable @Override public Icon getIcon()              { return null; }
 
     @Override public boolean isReadOnly() { return true; }
+
+    public static final class Language extends com.intellij.lang.Language {
+        public static final Language INSTANCE = new Language();
+
+        private Language() {
+            super("RenPy Compiled");
+        }
+    }
 }
