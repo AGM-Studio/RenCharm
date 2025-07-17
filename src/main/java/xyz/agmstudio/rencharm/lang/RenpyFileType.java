@@ -1,14 +1,16 @@
 package xyz.agmstudio.rencharm.lang;
 
+import com.intellij.extapi.psi.PsiFileBase;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.psi.FileViewProvider;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public final class RenpyFileType extends LanguageFileType {
-    private static final Icon FILE_ICON = IconLoader.getIcon("/icons/rpy.png", RenpyFileType.class);
-
+    public static final Icon FILE_ICON = IconLoader.getIcon("/icons/rpy.png", RenpyFileType.class);
     public static final RenpyFileType INSTANCE = new RenpyFileType();
 
     private RenpyFileType() { super(Language.INSTANCE); }
@@ -23,6 +25,17 @@ public final class RenpyFileType extends LanguageFileType {
 
         private Language() {
             super("RenPy");
+        }
+    }
+
+    public static class File extends PsiFileBase {
+        public File(@NotNull FileViewProvider provider) {
+            super(provider, Language.INSTANCE);
+        }
+
+        @Override
+        public @NotNull FileType getFileType() {
+            return INSTANCE;
         }
     }
 }

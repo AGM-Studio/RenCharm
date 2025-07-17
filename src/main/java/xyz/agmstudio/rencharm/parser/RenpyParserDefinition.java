@@ -11,10 +11,12 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
+import xyz.agmstudio.rencharm.lang.RenpyFileType;
 import xyz.agmstudio.rencharm.lexer.RenpyLexer;
-import xyz.agmstudio.rencharm.psi.RenpyFile;
+import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyPsiElement;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
+import xyz.agmstudio.rencharm.psi.elements.RenpyLabelImpl;
 
 public class RenpyParserDefinition implements ParserDefinition {
     @Override public @NotNull Lexer createLexer(Project project) {
@@ -36,9 +38,10 @@ public class RenpyParserDefinition implements ParserDefinition {
         return TokenSet.create(RenpyTokenTypes.STRING);
     }
     @Override public @NotNull PsiElement createElement(ASTNode node) {
+        if (node.getElementType() == RenpyElementTypes.LABEL_STATEMENT) return new RenpyLabelImpl(node);
         return new RenpyPsiElement(node);
     }
     @Override public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {
-        return new RenpyFile(viewProvider);
+        return new RenpyFileType.File(viewProvider);
     }
 }

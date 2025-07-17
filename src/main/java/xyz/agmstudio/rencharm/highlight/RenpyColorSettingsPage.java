@@ -27,7 +27,7 @@ public class RenpyColorSettingsPage implements ColorSettingsPage {
     };
 
     @Override public @Nullable Icon getIcon() {
-        return RenpyFileType.INSTANCE.getIcon();
+        return RenpyFileType.FILE_ICON;
     }
     @Override public @NotNull String getDisplayName() {
         return "Ren'Py";
@@ -56,8 +56,6 @@ public class RenpyColorSettingsPage implements ColorSettingsPage {
                 screen menu_screen():
                     vbox:
                         text _("Start") action Start()
-    
-                @some_decorator
             """;
     }
     @Override public @Nullable Map<String, TextAttributesKey> getAdditionalHighlightingTagToDescriptorMap() {

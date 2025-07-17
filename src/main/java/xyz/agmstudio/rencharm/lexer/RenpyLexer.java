@@ -11,12 +11,12 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class RenpyLexer extends LexerBase {
+    private static final char EOF = '\0';
+
     private CharSequence buffer;
     private int startOffset;
     private int endOffset;
@@ -29,6 +29,8 @@ public class RenpyLexer extends LexerBase {
         this.endOffset = startOffset;
         this.bufferEnd = bufferEnd;
         this.tokenType = null;
+        this.isNewLine = true;
+
         advance();
     }
 
@@ -39,6 +41,8 @@ public class RenpyLexer extends LexerBase {
     @Override public @NotNull CharSequence getBufferSequence() { return buffer; }
     @Override public int getBufferEnd() { return bufferEnd; }
 
+    private boolean isNewLine = true;
+
     @Override public void advance() {
         if (endOffset >= bufferEnd) {
             tokenType = null;
@@ -48,11 +52,21 @@ public class RenpyLexer extends LexerBase {
         startOffset = endOffset;
         char c = charAt(endOffset);
 
+        if (match(RenpyTokenTypes.NEWLINE, '\n') && (isNewLine = true)) return;
+        if (isNewLine && startsWith("    ")) {
+            endOffset += 4;
+            tokenType = RenpyTokenTypes.INDENT;
+            return;
+        }
+
+        isNewLine = false;
+
         if (matchWhile(TokenType.WHITE_SPACE, Character::isWhitespace)) return;
         // Comments & String
-        if (matchEnclosed(RenpyTokenTypes.COMMENT, "#", "\n", false)) return;
-        if (matchEnclosed(RenpyTokenTypes.STRING, "\"", "\"", true)) return;
-        if (matchEnclosed(RenpyTokenTypes.STRING, "'", "'", true)) return;
+        if (matchEnclosed(RenpyTokenTypes.COMMENT, "#", "\n", false, false)) return;
+        if (matchEnclosed(RenpyTokenTypes.STRING, "\"\"\"", "\"\"\"", true, true)) return;
+        if (matchEnclosed(RenpyTokenTypes.STRING, "\"", "\"", true, false)) return;
+        if (matchEnclosed(RenpyTokenTypes.STRING, "'", "'", true, false)) return;
 
         // Single char tokens
         if (match(RenpyTokenTypes.DOLLAR, '$')) return;
@@ -148,16 +162,23 @@ public class RenpyLexer extends LexerBase {
         return true;
     }
 
-    private boolean matchEnclosed(IElementType type, String open, String close, boolean allowEscape) {
+    private boolean matchEnclosed(IElementType type, String open, String close, boolean allowEscape, boolean multiline) {
         if (!startsWith(open)) return false;
 
         int i = endOffset + open.length();
         while (i < bufferEnd) {
-            if (buffer.subSequence(i, Math.min(i + close.length(), bufferEnd)).toString().equals(close)) {
+            char current = buffer.charAt(i);
+            if (!multiline && current == '\n') {
+                tokenType = type;
+                endOffset = i;
+                return true;
+            }
+            if (i + close.length() <= bufferEnd && buffer.subSequence(i, i + close.length()).toString().equals(close)) {
                 if (allowEscape && buffer.charAt(i - 1) == '\\') {
                     i++;
                     continue;
                 }
+
                 i += close.length();
                 tokenType = type;
                 endOffset = i;
@@ -166,7 +187,6 @@ public class RenpyLexer extends LexerBase {
             i++;
         }
 
-        // if no close found, consume to end
         tokenType = type;
         endOffset = bufferEnd;
         return true;

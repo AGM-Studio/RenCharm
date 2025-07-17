@@ -19,6 +19,9 @@ public interface RenpyTokenTypes {
     IElementType OPERATOR   = new RenpyToken("OPERATOR");
     IElementType COMMENT    = new RenpyToken("COMMENT");
 
+    IElementType INDENT     = new RenpyToken("INDENT");
+    IElementType NEWLINE    = new RenpyToken("NEWLINE");
+
     IElementType DOLLAR     = new RenpyToken("DOLLAR");
     IElementType COLON      = new RenpyToken("COLON");
     IElementType DOT        = new RenpyToken("DOT");
