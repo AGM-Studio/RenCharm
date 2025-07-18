@@ -2,6 +2,7 @@ package xyz.agmstudio.rencharm.psi;
 
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.lang.RenpyFileType;
 
@@ -34,6 +35,8 @@ public interface RenpyTokenTypes {
     IElementType RBRACE     = new RenpyToken("RBRACE");
     IElementType SEMICOLON  = new RenpyToken("SEMICOLON");
     IElementType AT         = new RenpyToken("AT");
+
+    TokenSet LITERAL_VALUES = TokenSet.create(STRING, NUMBER, CONSTANT_KEYWORD);
 
     IElementType WHITE_SPACE    = TokenType.WHITE_SPACE;
     IElementType BAD_CHARACTER  = TokenType.BAD_CHARACTER;

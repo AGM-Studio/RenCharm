@@ -7,6 +7,7 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
+import xyz.agmstudio.rencharm.psi.elements.RenpyDefineImpl;
 
 public class RenpyParser implements PsiParser {
     @NotNull
@@ -18,20 +19,51 @@ public class RenpyParser implements PsiParser {
     }
 
     private void parseStatement(PsiBuilder builder) {
+        builder.setDebugMode(true);
+        if (builder.getTokenType() == RenpyTokenTypes.PRIMARY_KEYWORD) {
+            final String key = builder.getTokenText();
+            switch (key) {
+                case "define":
+                    RenpyDefineImpl.parse(builder);
+                    return;
+            }
+        }
         if (builder.getTokenType() == RenpyTokenTypes.LABEL) {
             PsiBuilder.Marker stmt = builder.mark();
-            builder.advanceLexer(); // label
-            if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) {
-                System.out.println(builder.getTokenText());
-                builder.advanceLexer(); // label name
-            }
-            if (builder.getTokenType() == RenpyTokenTypes.COLON) {
-                builder.advanceLexer(); // :
-            }
+            builder.advanceLexer();
+
+            if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) builder.advanceLexer();
+            else builder.error("Expected an identifier for the label.");
+            if (builder.getTokenType() == RenpyTokenTypes.COLON) builder.advanceLexer();
+            else builder.error("Expected ':' after label.");
+
+            parseIndentedBlock(builder);
+
             stmt.done(RenpyElementTypes.LABEL_STATEMENT);
         } else {
-            builder.advanceLexer(); // skip unknowns
+            builder.advanceLexer(); // skip everything else for now
+        }
+    }
+
+    private void parseIndentedBlock(PsiBuilder builder) {
+        while (builder.getTokenType() == RenpyTokenTypes.NEWLINE) builder.advanceLexer();
+
+        if (builder.getTokenType() == RenpyTokenTypes.INDENT) {
+            builder.advanceLexer();
+            while (!builder.eof()) {
+                if (builder.getTokenType() == RenpyTokenTypes.NEWLINE) {
+                    builder.advanceLexer();
+                    boolean indent = false;
+                    while (builder.getTokenType() == RenpyTokenTypes.INDENT) {
+                        builder.advanceLexer();
+                        indent = true;
+                    }
+                    while (builder.getTokenType() == RenpyTokenTypes.WHITE_SPACE) builder.advanceLexer();
+                    if (builder.getTokenType() != RenpyTokenTypes.NEWLINE && !indent) break;
+                }
+
+                parseStatement(builder);
+            }
         }
     }
 }
-
