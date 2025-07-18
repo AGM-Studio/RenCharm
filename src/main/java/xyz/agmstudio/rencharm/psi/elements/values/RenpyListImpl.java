@@ -12,7 +12,7 @@ public class RenpyListImpl extends ASTWrapperPsiElement {
         super(node);
     }
 
-    public static @Nullable IElementType getStatement(PsiBuilder builder, PsiBuilder.Marker stmt) {
+    public static @Nullable IElementType getStatement(PsiBuilder builder) {
         return null;
     }
 }

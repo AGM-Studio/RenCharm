@@ -14,7 +14,9 @@ public class RenpyTupleImpl extends ASTWrapperPsiElement {
         super(node);
     }
 
-    public static @Nullable IElementType getStatement(PsiBuilder builder, PsiBuilder.Marker stmt) {
+    public static @Nullable IElementType getStatement(PsiBuilder builder) {
+        PsiBuilder.Marker stmt = builder.mark();
+
         boolean hasParens = builder.getTokenType() == RenpyTokenTypes.LPAREN;
         if (hasParens) builder.advanceLexer();
 

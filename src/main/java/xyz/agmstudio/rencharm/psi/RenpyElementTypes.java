@@ -5,6 +5,7 @@ import xyz.agmstudio.rencharm.lang.RenpyFileType;
 
 public interface RenpyElementTypes {
     IElementType EXPRESSION = new RenpyElement("EXPRESSION");
+    IElementType BINARY     = new RenpyElement("BINARY_EXPRESSION");
     IElementType TUPLE      = new RenpyElement("TUPLE_EXPRESSION");
     IElementType LIST       = new RenpyElement("LIST_EXPRESSION");
 
@@ -12,8 +13,6 @@ public interface RenpyElementTypes {
 
     IElementType LABEL_STATEMENT = new RenpyElement("LABEL_STATEMENT");
     IElementType JUMP_STATEMENT = new RenpyElement("JUMP_STATEMENT");
-
-    // add more as needed
 
     class RenpyElement extends IElementType {
         public RenpyElement(String statement) {
