@@ -9,23 +9,48 @@ import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
 
 public class RenpyExpressionImpl extends ASTWrapperPsiElement {
+    public static class Config {
+        public static final Config EMPTY = new Config();
+        public static final Config SKIP_BARE_TUPLE = new Config(true);
+        public static Config create(int precedence) {
+            return new Config(precedence);
+        }
+
+        final int precedence;
+        final boolean skipBareTuple;
+        private Config() {
+            this(0, false);
+        }
+        private Config(int precedence) {
+            this(precedence, false);
+        }
+        private Config(boolean skipBareTuple) {
+            this(0, skipBareTuple);
+        }
+        private Config(int precedence, boolean skipBareTuple) {
+            this.precedence = precedence;
+            this.skipBareTuple = skipBareTuple;
+        }
+
+        public Config withPrecedence(int precedence) {
+            return new Config(precedence, this.skipBareTuple);
+        }
+        public Config skipBareTuple(boolean skipBareTuple) {
+            return new Config(this.precedence, skipBareTuple);
+        }
+    }
+
     public RenpyExpressionImpl(@NotNull ASTNode node) {
         super(node);
     }
 
     public static IElementType getStatement(PsiBuilder builder) {
-        return getStatement(builder, null, 0);
+        return getStatement(builder, Config.EMPTY);
     }
-    public static IElementType getStatement(PsiBuilder builder, IElementType skip) {
-        return getStatement(builder, skip, 0);
-    }
-    public static IElementType getStatement(PsiBuilder builder, int precedence) {
-        return getStatement(builder, null, precedence);
-    }
-    public static IElementType getStatement(PsiBuilder builder, IElementType skip, int precedence) {
+    public static IElementType getStatement(PsiBuilder builder, Config cfg) {
         PsiBuilder.Marker stmt = builder.mark();
 
-        IElementType left = getPrimaryStatement(builder, skip);
+        IElementType left = getPrimaryStatement(builder, cfg);
         if (left == null) {
             stmt.rollbackTo();
             return null;
@@ -33,11 +58,11 @@ public class RenpyExpressionImpl extends ASTWrapperPsiElement {
 
         while (true) {
             int operator = getPrecedence(builder.getTokenText());
-            if (builder.getTokenType() != RenpyTokenTypes.OPERATOR || operator < precedence) break;
+            if (builder.getTokenType() != RenpyTokenTypes.OPERATOR || operator < cfg.precedence) break;
             builder.advanceLexer();
 
             PsiBuilder.Marker mark = builder.mark();
-            IElementType right = getStatement(builder, skip, operator + 1);
+            IElementType right = getStatement(builder, cfg.withPrecedence(operator + 1));
             if (right == null) {
                 mark.rollbackTo();
                 builder.error("Expected expression after operator");
@@ -61,11 +86,11 @@ public class RenpyExpressionImpl extends ASTWrapperPsiElement {
     }
 
     // Parse primary expressions: tuples, lists, identifiers, literals
-    private static IElementType getPrimaryStatement(PsiBuilder builder, IElementType skip) {
+    private static IElementType getPrimaryStatement(PsiBuilder builder, Config cfg) {
         IElementType token;
 
-        if (skip != RenpyElementTypes.TUPLE && (token = RenpyTupleImpl.getStatement(builder)) != null) return token;
-        if (skip != RenpyElementTypes.LIST  && (token = RenpyListImpl.getStatement(builder)) != null) return token;
+        if ((token = RenpyTupleImpl.getStatement(builder, cfg.skipBareTuple)) != null) return token;
+        if ((token = RenpyListImpl.getStatement(builder)) != null) return token;
 
         IElementType currentToken = builder.getTokenType();
         if (currentToken == RenpyTokenTypes.IDENTIFIER || RenpyTokenTypes.LITERAL_VALUES.contains(currentToken)) {

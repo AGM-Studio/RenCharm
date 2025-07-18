@@ -14,7 +14,9 @@ public class RenpyTupleImpl extends ASTWrapperPsiElement {
         super(node);
     }
 
-    public static @Nullable IElementType getStatement(PsiBuilder builder) {
+    public static @Nullable IElementType getStatement(PsiBuilder builder, boolean skipBareTuple) {
+        if (skipBareTuple && builder.getTokenType() != RenpyTokenTypes.LPAREN) return null; {}
+
         PsiBuilder.Marker stmt = builder.mark();
 
         boolean hasParens = builder.getTokenType() == RenpyTokenTypes.LPAREN;
@@ -24,7 +26,8 @@ public class RenpyTupleImpl extends ASTWrapperPsiElement {
         boolean hasComma = false;
 
         while (true) {
-            IElementType expr = RenpyExpressionImpl.getStatement(builder, hasParens ? null : RenpyElementTypes.TUPLE);
+            RenpyExpressionImpl.Config config = hasParens ? RenpyExpressionImpl.Config.EMPTY : RenpyExpressionImpl.Config.SKIP_BARE_TUPLE;
+            IElementType expr = RenpyExpressionImpl.getStatement(builder, config);
             if (expr == null) break;
             exprCount++;
 
