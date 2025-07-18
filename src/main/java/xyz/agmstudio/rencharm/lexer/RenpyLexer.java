@@ -52,9 +52,17 @@ public class RenpyLexer extends LexerBase {
         startOffset = endOffset;
         char c = charAt(endOffset);
 
-        if (match(RenpyTokenTypes.NEWLINE, '\n') && (isNewLine = true)) return;
-        if (isNewLine && startsWith("    ")) {
-            endOffset += 4;
+        if (match(RenpyTokenTypes.NEWLINE, '\n') && (isNewLine = true)) {
+            int temp = endOffset;
+            char ch = charAt(temp);
+            while (ch == ' ' || ch == '\t') ch = charAt(++temp);
+            if (ch == '\n' || ch == '\0') endOffset = temp + (ch == '\n' ? 1 : 0);
+            return;
+        }
+
+        if (isNewLine  && (startsWith("    ") || startsWith("\t"))) {
+            if (startsWith("    ")) endOffset += 4;
+            else endOffset++;
             tokenType = RenpyTokenTypes.INDENT;
             return;
         }
@@ -130,7 +138,6 @@ public class RenpyLexer extends LexerBase {
             }
             return Collections.unmodifiableSet(keywords);
         } catch (Exception e) {
-            e.printStackTrace();
             return Collections.emptySet();
         }
     }
@@ -229,7 +236,6 @@ public class RenpyLexer extends LexerBase {
         tokenType = RenpyTokenTypes.NUMBER;
         return true;
     }
-
 
     private char charAt(int i) {
         return i < bufferEnd ? buffer.charAt(i) : '\0';
