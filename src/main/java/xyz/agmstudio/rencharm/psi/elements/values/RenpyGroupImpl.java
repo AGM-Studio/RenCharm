@@ -20,31 +20,18 @@ public class RenpyGroupImpl extends ASTWrapperPsiElement {
         PsiBuilder.Marker group = builder.mark();
         builder.advanceLexer();
 
-        if (builder.getTokenType() == RenpyTokenTypes.RPAREN) {
-            builder.advanceLexer();
-            group.done(RenpyElementTypes.GROUP);
-            return RenpyElementTypes.GROUP;
-        }
-
         IElementType expr = RenpyExpressionImpl.getStatement(builder);
-        if (expr == null) {
-            group.rollbackTo();
-            return null;
-        }
-
-        if (builder.getTokenType() == RenpyTokenTypes.COMMA) {
+        if (builder.getTokenType() == RenpyTokenTypes.COMMA) { // It's a tuple!
             group.rollbackTo();
             return null;
         }
 
         if (builder.getTokenType() == RenpyTokenTypes.RPAREN) {
+            if (expr == null) builder.error("Expected an expression inside group");
             builder.advanceLexer();
-            group.done(RenpyElementTypes.GROUP);
-            return RenpyElementTypes.GROUP;
-        }
+        } else builder.error("Expected ')'");
 
-        builder.error("Expected ')'");
-        group.drop();
-        return null;
+        group.done(RenpyElementTypes.GROUP);
+        return RenpyElementTypes.GROUP;
     }
 }

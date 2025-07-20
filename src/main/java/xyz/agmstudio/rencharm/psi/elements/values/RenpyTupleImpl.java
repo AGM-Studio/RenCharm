@@ -31,52 +31,5 @@ public class RenpyTupleImpl extends ASTWrapperPsiElement {
         stmt.done(RenpyElementTypes.TUPLE);
         return RenpyElementTypes.TUPLE;
     }
-
-    public static @Nullable IElementType getOldStatement(PsiBuilder builder, boolean skipBareTuple) {
-        if (skipBareTuple && builder.getTokenType() != RenpyTokenTypes.LPAREN) return null; {}
-
-        PsiBuilder.Marker stmt = builder.mark();
-
-        boolean hasParens = builder.getTokenType() == RenpyTokenTypes.LPAREN;
-        if (hasParens) builder.advanceLexer();
-
-        int exprCount = 0;
-        boolean hasComma = false;
-
-        while (true) {
-            if (!hasParens && builder.getTokenType() == RenpyTokenTypes.NEWLINE) break;
-            RenpyExpressionImpl.Config config = hasParens ? RenpyExpressionImpl.Config.DEFAULT : RenpyExpressionImpl.Config.DEFAULT;
-            IElementType expr = RenpyExpressionImpl.getStatement(builder, config);
-            if (expr == null) break;
-            exprCount++;
-
-            if (builder.getTokenType() == RenpyTokenTypes.COMMA) {
-                hasComma = true;
-                builder.advanceLexer();
-            } else break;
-        }
-
-        if (hasParens) {
-            if (builder.getTokenType() == RenpyTokenTypes.RPAREN) {
-                builder.advanceLexer();
-                if (exprCount == 1 && !hasComma) {
-                    stmt.rollbackTo();
-                    return null;
-                }
-            } else {
-                builder.error("Expected ')' at end of tuple.");
-                stmt.drop();
-                return null;
-            }
-        } else {
-            if (exprCount == 1 && !hasComma) {
-                stmt.rollbackTo();
-                return null;
-            }
-        }
-
-        stmt.done(RenpyElementTypes.TUPLE);
-        return RenpyElementTypes.TUPLE;
-    }
 }
 

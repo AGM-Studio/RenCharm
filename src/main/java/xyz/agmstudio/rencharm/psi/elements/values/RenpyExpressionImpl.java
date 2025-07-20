@@ -126,8 +126,8 @@ public class RenpyExpressionImpl extends ASTWrapperPsiElement {
 
     private static IElementType getPrimaryStatement(PsiBuilder builder, Config cfg) {
         IElementType token;
-        if ((token = RenpyTupleImpl.getStatement(builder)) != null) return token;
         if ((token = RenpyGroupImpl.getStatement(builder)) != null) return token;
+        if ((token = RenpyTupleImpl.getStatement(builder)) != null) return token;
         if ((token = RenpyListImpl.getStatement(builder)) != null) return token;
 
         token = builder.getTokenType();
