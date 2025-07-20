@@ -26,6 +26,7 @@ public class RenpyTupleImpl extends ASTWrapperPsiElement {
         boolean hasComma = false;
 
         while (true) {
+            if (!hasParens && builder.getTokenType() == RenpyTokenTypes.NEWLINE) break;
             RenpyExpressionImpl.Config config = hasParens ? RenpyExpressionImpl.Config.EMPTY : RenpyExpressionImpl.Config.SKIP_BARE_TUPLE;
             IElementType expr = RenpyExpressionImpl.getStatement(builder, config);
             if (expr == null) break;

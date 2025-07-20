@@ -55,7 +55,7 @@ public class RenpyLexer extends LexerBase {
         if (match(RenpyTokenTypes.NEWLINE, '\n') && (isNewLine = true)) {
             int temp = endOffset;
             char ch = charAt(temp);
-            while (ch == ' ' || ch == '\t') ch = charAt(++temp);
+            while (ch == ' ' || ch == '\t' || ch == '\f') ch = charAt(++temp);
             if (ch == '\n' || ch == '\0') endOffset = temp + (ch == '\n' ? 1 : 0);
             return;
         }
@@ -69,7 +69,7 @@ public class RenpyLexer extends LexerBase {
 
         isNewLine = false;
 
-        if (matchWhile(TokenType.WHITE_SPACE, Character::isWhitespace)) return;
+        if (matchWhile(TokenType.WHITE_SPACE, ch -> ch == ' ' || ch == '\t' || ch == '\f')) return;
         // Comments & String
         if (matchEnclosed(RenpyTokenTypes.COMMENT, "#", "\n", false, false)) return;
         if (matchEnclosed(RenpyTokenTypes.STRING, "\"\"\"", "\"\"\"", true, true)) return;
