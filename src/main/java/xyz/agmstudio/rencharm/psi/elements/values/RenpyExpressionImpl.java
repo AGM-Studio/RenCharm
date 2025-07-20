@@ -7,6 +7,7 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
+import xyz.agmstudio.rencharm.psi.RenpyPsiElement;
 
 public class RenpyExpressionImpl extends ASTWrapperPsiElement {
     public static class Config {
@@ -50,7 +51,7 @@ public class RenpyExpressionImpl extends ASTWrapperPsiElement {
     public static IElementType getStatement(PsiBuilder builder, Config cfg) {
         PsiBuilder.Marker stmt = builder.mark();
 
-        IElementType left = getPrimaryStatement(builder, cfg);
+        IElementType left = getUnaryExpression(builder, cfg);
         if (left == null) {
             stmt.rollbackTo();
             return null;
@@ -76,6 +77,30 @@ public class RenpyExpressionImpl extends ASTWrapperPsiElement {
 
         stmt.drop();
         return left;
+    }
+
+    private static IElementType getUnaryExpression(PsiBuilder builder, Config cfg) {
+        IElementType token = builder.getTokenType();
+        String text = builder.getTokenText();
+        if (text == null) return null;
+        if (RenpyElementTypes.isNext(builder, RenpyTokenTypes.OPERATOR, "+", "-")
+                || RenpyElementTypes.isNext(builder, RenpyTokenTypes.PRIMARY_KEYWORD, "not")) {
+            PsiBuilder.Marker stmt = builder.mark();
+            builder.advanceLexer();
+
+            IElementType operand = getStatement(builder, Config.create(3));
+            if (operand == null) {
+                stmt.rollbackTo();
+                builder.error("Expected expression after unary operator");
+                return null;
+            }
+
+            stmt.done(RenpyElementTypes.UNARY);
+            return RenpyElementTypes.UNARY;
+        }
+
+        // If not unary operator, fallback to primary expression parsing
+        return getPrimaryStatement(builder, cfg);
     }
 
     private static int getPrecedence(String token) {
