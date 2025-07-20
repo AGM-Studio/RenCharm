@@ -5,10 +5,11 @@ import com.intellij.psi.tree.IElementType;
 import xyz.agmstudio.rencharm.lang.RenpyFileType;
 
 public interface RenpyElementTypes {
-    IElementType EXPRESSION = new RenpyElement("EXPRESSION");
     IElementType UNARY      = new RenpyElement("UNARY_EXPRESSION");
     IElementType BINARY     = new RenpyElement("BINARY_EXPRESSION");
+    IElementType GROUP      = new RenpyElement("GROUP_EXPRESSION");
     IElementType TUPLE      = new RenpyElement("TUPLE_EXPRESSION");
+    IElementType BARE_TUPLE = new RenpyElement("TUPLE_EXPRESSION");
     IElementType LIST       = new RenpyElement("LIST_EXPRESSION");
 
     IElementType DEFINE_STATEMENT = new RenpyElement("DEFINE_STATEMENT");

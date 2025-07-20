@@ -14,7 +14,25 @@ public class RenpyTupleImpl extends ASTWrapperPsiElement {
         super(node);
     }
 
-    public static @Nullable IElementType getStatement(PsiBuilder builder, boolean skipBareTuple) {
+    public static @Nullable IElementType getStatement(PsiBuilder builder) {
+        if (builder.getTokenType() != RenpyTokenTypes.LPAREN) return null;
+        PsiBuilder.Marker stmt = builder.mark();
+        builder.advanceLexer();
+
+        while (true) {
+            IElementType expr = RenpyExpressionImpl.getStatement(builder);
+            if (expr == null || builder.getTokenType() != RenpyTokenTypes.COMMA) break;
+            builder.advanceLexer();
+        }
+
+        if (builder.getTokenType() == RenpyTokenTypes.RPAREN) builder.advanceLexer();
+        else builder.error("Expected ')' at end of tuple.");
+
+        stmt.done(RenpyElementTypes.TUPLE);
+        return RenpyElementTypes.TUPLE;
+    }
+
+    public static @Nullable IElementType getOldStatement(PsiBuilder builder, boolean skipBareTuple) {
         if (skipBareTuple && builder.getTokenType() != RenpyTokenTypes.LPAREN) return null; {}
 
         PsiBuilder.Marker stmt = builder.mark();
@@ -27,7 +45,7 @@ public class RenpyTupleImpl extends ASTWrapperPsiElement {
 
         while (true) {
             if (!hasParens && builder.getTokenType() == RenpyTokenTypes.NEWLINE) break;
-            RenpyExpressionImpl.Config config = hasParens ? RenpyExpressionImpl.Config.EMPTY : RenpyExpressionImpl.Config.SKIP_BARE_TUPLE;
+            RenpyExpressionImpl.Config config = hasParens ? RenpyExpressionImpl.Config.DEFAULT : RenpyExpressionImpl.Config.DEFAULT;
             IElementType expr = RenpyExpressionImpl.getStatement(builder, config);
             if (expr == null) break;
             exprCount++;

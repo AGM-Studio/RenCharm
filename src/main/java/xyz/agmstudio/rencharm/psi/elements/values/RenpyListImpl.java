@@ -20,7 +20,7 @@ public class RenpyListImpl extends ASTWrapperPsiElement {
         builder.advanceLexer();
 
         while (true) {
-            IElementType expr = RenpyExpressionImpl.getStatement(builder, RenpyExpressionImpl.Config.SKIP_BARE_TUPLE);
+            IElementType expr = RenpyExpressionImpl.getStatement(builder);
             if (expr == null || builder.getTokenType() != RenpyTokenTypes.COMMA) break;
             builder.advanceLexer();
         }

@@ -7,37 +7,20 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
-import xyz.agmstudio.rencharm.psi.RenpyPsiElement;
 
 public class RenpyExpressionImpl extends ASTWrapperPsiElement {
     public static class Config {
-        public static final Config EMPTY = new Config();
-        public static final Config SKIP_BARE_TUPLE = new Config(true);
+        public static final Config DEFAULT = new Config(0);
         public static Config create(int precedence) {
             return new Config(precedence);
         }
 
         final int precedence;
-        final boolean skipBareTuple;
-        private Config() {
-            this(0, false);
-        }
         private Config(int precedence) {
-            this(precedence, false);
-        }
-        private Config(boolean skipBareTuple) {
-            this(0, skipBareTuple);
-        }
-        private Config(int precedence, boolean skipBareTuple) {
             this.precedence = precedence;
-            this.skipBareTuple = skipBareTuple;
         }
-
         public Config withPrecedence(int precedence) {
-            return new Config(precedence, this.skipBareTuple);
-        }
-        public Config skipBareTuple(boolean skipBareTuple) {
-            return new Config(this.precedence, skipBareTuple);
+            return new Config(precedence);
         }
     }
 
@@ -45,8 +28,39 @@ public class RenpyExpressionImpl extends ASTWrapperPsiElement {
         super(node);
     }
 
+    public static IElementType getBareStatement(PsiBuilder builder) {
+        PsiBuilder.Marker stmt = builder.mark();
+        int exprCount = 0;
+        boolean hasComma = false;
+        IElementType lastExpr = null;
+
+        while (true) {
+            IElementType expr = getStatement(builder);
+            if (expr == null) break;
+
+            exprCount++;
+            lastExpr = expr;
+
+            if (builder.getTokenType() == RenpyTokenTypes.COMMA) {
+                hasComma = true;
+                builder.advanceLexer();
+            } else break;
+        }
+
+        if (exprCount >= 2 || (exprCount == 1 && hasComma)) {
+            stmt.done(RenpyElementTypes.BARE_TUPLE);
+            return RenpyElementTypes.BARE_TUPLE;
+        } else if (exprCount == 1) {
+            stmt.drop();
+            return lastExpr;
+        } else {
+            stmt.rollbackTo();
+            return null;
+        }
+    }
+
     public static IElementType getStatement(PsiBuilder builder) {
-        return getStatement(builder, Config.EMPTY);
+        return getStatement(builder, Config.DEFAULT);
     }
     public static IElementType getStatement(PsiBuilder builder, Config cfg) {
         PsiBuilder.Marker stmt = builder.mark();
@@ -110,19 +124,17 @@ public class RenpyExpressionImpl extends ASTWrapperPsiElement {
         return 0;
     }
 
-    // Parse primary expressions: tuples, lists, identifiers, literals
     private static IElementType getPrimaryStatement(PsiBuilder builder, Config cfg) {
         IElementType token;
-
-        if ((token = RenpyTupleImpl.getStatement(builder, cfg.skipBareTuple)) != null) return token;
+        if ((token = RenpyTupleImpl.getStatement(builder)) != null) return token;
+        if ((token = RenpyGroupImpl.getStatement(builder)) != null) return token;
         if ((token = RenpyListImpl.getStatement(builder)) != null) return token;
 
-        IElementType currentToken = builder.getTokenType();
-        if (currentToken == RenpyTokenTypes.IDENTIFIER || RenpyTokenTypes.LITERAL_VALUES.contains(currentToken)) {
+        token = builder.getTokenType();
+        if (token == RenpyTokenTypes.IDENTIFIER || RenpyTokenTypes.LITERAL_VALUES.contains(token)) {
             builder.advanceLexer();
-            return currentToken;
+            return token;
         }
-
         return null;
     }
 }

@@ -32,7 +32,7 @@ public class RenpyDefineImpl extends ASTWrapperPsiElement {
         else builder.error("Expected '=' after the identifier but got '" + builder.getTokenText() + "'.");
 
         // Values for define
-        if (RenpyExpressionImpl.getStatement(builder) == null)
+        if (RenpyExpressionImpl.getBareStatement(builder) == null)
             builder.error("Expected a value or expression but got '" + builder.getTokenText() + "'.");
 
         // ERROR EVERYTHING except for SEMICOLON till line ends!
