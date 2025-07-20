@@ -16,7 +16,7 @@ import xyz.agmstudio.rencharm.lexer.RenpyLexer;
 import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyPsiElement;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
-import xyz.agmstudio.rencharm.psi.elements.RenpyLabelImpl;
+import xyz.agmstudio.rencharm.psi.elements.StmLabel;
 
 public class RenpyParserDefinition implements ParserDefinition {
     @Override public @NotNull Lexer createLexer(Project project) {
@@ -38,7 +38,7 @@ public class RenpyParserDefinition implements ParserDefinition {
         return TokenSet.create(RenpyTokenTypes.STRING);
     }
     @Override public @NotNull PsiElement createElement(ASTNode node) {
-        if (node.getElementType() == RenpyElementTypes.LABEL_STATEMENT) return new RenpyLabelImpl(node);
+        if (node.getElementType() == RenpyElementTypes.LABEL_STATEMENT) return new StmLabel(node);
         return new RenpyPsiElement(node);
     }
     @Override public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {

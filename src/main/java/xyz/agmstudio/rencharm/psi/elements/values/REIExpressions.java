@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
 
-public class RenpyExpressionImpl extends ASTWrapperPsiElement {
+public class REIExpressions extends ASTWrapperPsiElement {
     public static class Config {
         public static final Config DEFAULT = new Config(0);
         public static Config create(int precedence) {
@@ -24,7 +24,7 @@ public class RenpyExpressionImpl extends ASTWrapperPsiElement {
         }
     }
 
-    public RenpyExpressionImpl(@NotNull ASTNode node) {
+    public REIExpressions(@NotNull ASTNode node) {
         super(node);
     }
 
@@ -125,10 +125,8 @@ public class RenpyExpressionImpl extends ASTWrapperPsiElement {
     }
 
     private static IElementType getPrimaryStatement(PsiBuilder builder, Config cfg) {
-        IElementType token;
-        if ((token = RenpyGroupImpl.getStatement(builder)) != null) return token;
-        if ((token = RenpyTupleImpl.getStatement(builder)) != null) return token;
-        if ((token = RenpyListImpl.getStatement(builder)) != null) return token;
+        IElementType token = REIGroups.getStatement(builder);
+        if (token != null) return token;
 
         token = builder.getTokenType();
         if (token == RenpyTokenTypes.IDENTIFIER || RenpyTokenTypes.LITERAL_VALUES.contains(token)) {

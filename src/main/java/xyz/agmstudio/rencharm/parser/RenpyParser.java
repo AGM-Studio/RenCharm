@@ -7,7 +7,7 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
-import xyz.agmstudio.rencharm.psi.elements.RenpyDefineImpl;
+import xyz.agmstudio.rencharm.psi.elements.StmDefine;
 
 public class RenpyParser implements PsiParser {
     @NotNull
@@ -24,7 +24,7 @@ public class RenpyParser implements PsiParser {
             final String key = builder.getTokenText();
             switch (key) {
                 case "define":
-                    RenpyDefineImpl.parse(builder);
+                    StmDefine.parse(builder);
                     return;
             }
         }

@@ -7,12 +7,12 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
-import xyz.agmstudio.rencharm.psi.elements.values.RenpyExpressionImpl;
+import xyz.agmstudio.rencharm.psi.elements.values.REIExpressions;
 
 import java.util.Objects;
 
-public class RenpyDefineImpl extends ASTWrapperPsiElement {
-    public RenpyDefineImpl(@NotNull ASTNode node) {
+public class StmDefine extends ASTWrapperPsiElement {
+    public StmDefine(@NotNull ASTNode node) {
         super(node);
     }
 
@@ -32,7 +32,7 @@ public class RenpyDefineImpl extends ASTWrapperPsiElement {
         else builder.error("Expected '=' after the identifier but got '" + builder.getTokenText() + "'.");
 
         // Values for define
-        if (RenpyExpressionImpl.getBareStatement(builder) == null)
+        if (REIExpressions.getBareStatement(builder) == null)
             builder.error("Expected a value or expression but got '" + builder.getTokenText() + "'.");
 
         // ERROR EVERYTHING except for SEMICOLON till line ends!

@@ -6,8 +6,8 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
 
-public class RenpyLabelImpl extends ASTWrapperPsiElement {
-    public RenpyLabelImpl(@NotNull ASTNode node) {
+public class StmLabel extends ASTWrapperPsiElement {
+    public StmLabel(@NotNull ASTNode node) {
         super(node);
     }
 
