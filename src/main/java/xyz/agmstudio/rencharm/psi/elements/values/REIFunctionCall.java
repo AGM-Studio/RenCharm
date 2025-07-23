@@ -32,7 +32,7 @@ public class REIFunctionCall extends ASTWrapperPsiElement {
             // Try named argument (IDENTIFIER = expr)
             if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) {
                 builder.advanceLexer();
-                if (RenpyElementTypes.isNext(builder, RenpyTokenTypes.OPERATOR, "=")) {
+                if (RenpyTokenTypes.OPERATOR.isToken(builder, "=")) {
                     builder.advanceLexer();
                     IElementType value = REIExpressions.getStatement(builder);
                     if (value == null) builder.error("Expected expression after '='");

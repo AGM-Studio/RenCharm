@@ -97,8 +97,7 @@ public class REIExpressions extends ASTWrapperPsiElement {
         IElementType token = builder.getTokenType();
         String text = builder.getTokenText();
         if (text == null) return null;
-        if (RenpyElementTypes.isNext(builder, RenpyTokenTypes.OPERATOR, "+", "-")
-                || RenpyElementTypes.isNext(builder, RenpyTokenTypes.PRIMARY_KEYWORD, "not")) {
+        if (RenpyTokenTypes.OPERATOR.isToken(builder, "+", "-") || RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "not")) {
             PsiBuilder.Marker stmt = builder.mark();
             builder.advanceLexer();
 
