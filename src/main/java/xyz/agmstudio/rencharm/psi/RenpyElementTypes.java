@@ -11,7 +11,11 @@ public interface RenpyElementTypes {
     IElementType TUPLE      = new RenpyElement("TUPLE_EXPRESSION");
     IElementType BARE_TUPLE = new RenpyElement("TUPLE_EXPRESSION");
     IElementType LIST       = new RenpyElement("LIST_EXPRESSION");
-    IElementType SET        = new  RenpyElement("SET_EXPRESSION");
+    IElementType SET        = new RenpyElement("SET_EXPRESSION");
+
+    IElementType FUNCTION_CALL  = new RenpyElement("FUNCTION_CALL_EXPRESSION");
+    IElementType ARGUMENT_POSED = new RenpyElement("ARGUMENT_POSED_EXPRESSION");
+    IElementType ARGUMENT_NAMED = new RenpyElement("ARGUMENT_NAMED_EXPRESSION");
 
     IElementType DEFINE_STATEMENT = new RenpyElement("DEFINE_STATEMENT");
 

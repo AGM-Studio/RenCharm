@@ -125,7 +125,10 @@ public class REIExpressions extends ASTWrapperPsiElement {
     }
 
     private static IElementType getPrimaryStatement(PsiBuilder builder, Config cfg) {
-        IElementType token = REIGroups.getStatement(builder);
+        IElementType token = REIFunctionCall.getStatement(builder);
+        if (token != null) return token;
+
+        token = REIGroups.getStatement(builder);
         if (token != null) return token;
 
         token = builder.getTokenType();
