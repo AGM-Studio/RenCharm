@@ -23,7 +23,6 @@ public class REIFunctionCall extends ASTWrapperPsiElement {
             return null; // It's probably an IDENTIFIER
         }
         builder.advanceLexer();
-        System.out.println("IT'S ALIVE!");
 
         boolean is_named = false;
         while (builder.getTokenType() != RenpyTokenTypes.RPAREN && builder.getTokenType() != null) {
@@ -37,7 +36,6 @@ public class REIFunctionCall extends ASTWrapperPsiElement {
                     IElementType value = REIExpressions.getStatement(builder);
                     if (value == null) builder.error("Expected expression after '='");
                     argument.done(RenpyElementTypes.ARGUMENT_NAMED);
-                    System.out.println("Named argument was found!");
                     is_named = true;
                 } else {
                     // It's a positional argument, avoid recalling it by calling it now!
