@@ -113,7 +113,7 @@ public class REIExpressions extends ASTWrapperPsiElement {
         }
 
         // If not unary operator, fallback to primary expression parsing
-        return getPrimaryStatement(builder, cfg);
+        return getChainedPrimaryStatement(builder);
     }
 
     private static int getPrecedence(String token) {
@@ -123,7 +123,14 @@ public class REIExpressions extends ASTWrapperPsiElement {
         return 0;
     }
 
-    private static IElementType getPrimaryStatement(PsiBuilder builder, Config cfg) {
+    protected static IElementType getChainedPrimaryStatement(PsiBuilder builder) {
+        IElementType token = REIMemberAccess.getStatement(builder);
+        if (token != null) return token;
+
+        return getPrimaryStatement(builder);
+    }
+
+    protected static IElementType getPrimaryStatement(PsiBuilder builder) {
         IElementType token = REIFunctionCall.getStatement(builder);
         if (token != null) return token;
 
