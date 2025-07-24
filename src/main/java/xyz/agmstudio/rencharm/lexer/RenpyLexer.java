@@ -3,6 +3,7 @@ package xyz.agmstudio.rencharm.lexer;
 import com.intellij.lexer.LexerBase;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
@@ -29,7 +30,9 @@ public class RenpyLexer extends LexerBase {
         this.endOffset = startOffset;
         this.bufferEnd = bufferEnd;
         this.tokenType = null;
+
         this.isNewLine = true;
+        this.isNewWord = true;
 
         advance();
     }
@@ -41,9 +44,18 @@ public class RenpyLexer extends LexerBase {
     @Override public @NotNull CharSequence getBufferSequence() { return buffer; }
     @Override public int getBufferEnd() { return bufferEnd; }
 
+    private static final TokenSet ignoreNewLine = TokenSet.create(RenpyTokenTypes.NEWLINE, TokenType.WHITE_SPACE, RenpyTokenTypes.INDENT);
     private boolean isNewLine = true;
 
+    private static final TokenSet ignoreNewWord = TokenSet.create(RenpyTokenTypes.NEWLINE, TokenType.WHITE_SPACE, RenpyTokenTypes.INDENT);
+    private boolean isNewWord = true;
+
     @Override public void advance() {
+        tokenAdvance();
+        if (!ignoreNewLine.contains(tokenType)) isNewLine = false;
+        if (!ignoreNewWord.contains(tokenType)) isNewWord = false;
+    }
+    private void tokenAdvance() {
         if (endOffset >= bufferEnd) {
             tokenType = null;
             return;
@@ -52,7 +64,7 @@ public class RenpyLexer extends LexerBase {
         startOffset = endOffset;
         char c = charAt(endOffset);
 
-        if (match(RenpyTokenTypes.NEWLINE, '\n') && (isNewLine = true)) {
+        if (match(RenpyTokenTypes.NEWLINE, '\n') && (isNewLine = true) && (isNewWord = true)) {
             int temp = endOffset;
             char ch = charAt(temp);
             while (ch == ' ' || ch == '\t' || ch == '\f') ch = charAt(++temp);
@@ -67,9 +79,7 @@ public class RenpyLexer extends LexerBase {
             return;
         }
 
-        isNewLine = false;
-
-        if (matchWhile(TokenType.WHITE_SPACE, ch -> ch == ' ' || ch == '\t' || ch == '\f')) return;
+        if (matchWhile(TokenType.WHITE_SPACE, ch -> ch == ' ' || ch == '\t' || ch == '\f') && (isNewWord = true)) return;
         // Comments & String
         if (matchEnclosed(RenpyTokenTypes.COMMENT, "#", "\n", false, false)) return;
         if (matchEnclosed(RenpyTokenTypes.STRING, "\"\"\"", "\"\"\"", true, true)) return;
@@ -100,12 +110,11 @@ public class RenpyLexer extends LexerBase {
             String word = buffer.subSequence(start, endOffset).toString();
 
             tokenType = RenpyTokenTypes.IDENTIFIER;
-            if      (word.equals("label"))                  tokenType = RenpyTokenTypes.LABEL;
-            else if (word.equals("screen"))                 tokenType = RenpyTokenTypes.SCREEN;
-            else if (PRIMARY_KEYWORDS.contains(word))       tokenType = RenpyTokenTypes.PRIMARY_KEYWORD;
-            else if (FUNCTIONAL_KEYWORDS.contains(word))    tokenType = RenpyTokenTypes.FUNCTIONAL_KEYWORD;
-            else if (STYLE_KEYWORDS.contains(word))         tokenType = RenpyTokenTypes.STYLE_KEYWORD;
-            else if (CONSTANT_KEYWORDS.contains(word))      tokenType = RenpyTokenTypes.CONSTANT_KEYWORD;
+            if (RESERVED_KEYWORDS.contains(word))                       tokenType = RenpyTokenTypes.PRIMARY_KEYWORD;
+            else if (PRIMARY_KEYWORDS.contains(word)    && isNewLine)   tokenType = RenpyTokenTypes.PRIMARY_KEYWORD;
+            else if (STYLE_KEYWORDS.contains(word)      && isNewWord)   tokenType = RenpyTokenTypes.STYLE_KEYWORD;
+            else if (FUNCTIONAL_KEYWORDS.contains(word))                tokenType = RenpyTokenTypes.FUNCTIONAL_KEYWORD;
+            else if (CONSTANT_KEYWORDS.contains(word))                  tokenType = RenpyTokenTypes.CONSTANT_KEYWORD;
             return;
         }
 
@@ -116,6 +125,8 @@ public class RenpyLexer extends LexerBase {
     // List of words ---------------------------------------------------------------------------------------------------
     private static final Set<String> PRIMARY_KEYWORDS
             = RenpyLexer.loadKeywords("/keywords/primary.txt");
+    private static final Set<String> RESERVED_KEYWORDS
+            = RenpyLexer.loadKeywords("/keywords/reserved.txt");
     private static final Set<String> FUNCTIONAL_KEYWORDS
             = RenpyLexer.loadKeywords("/keywords/functional.txt");
     private static final Set<String> STYLE_KEYWORDS
