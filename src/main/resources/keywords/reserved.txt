@@ -8,3 +8,5 @@ elif
 continue
 with
 not
+and
+or

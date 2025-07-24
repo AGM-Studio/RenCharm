@@ -117,7 +117,7 @@ public class REIExpressions extends ASTWrapperPsiElement {
 
             while (true) {
                 int opp = getPrecedence(builder.getTokenText());
-                if (builder.getTokenType() != RenpyTokenTypes.OPERATOR || opp < precedence) break;
+                if (!isNextOperator(builder) || opp < precedence) break;
                 builder.advanceLexer();
 
                 PsiBuilder.Marker rightMarker = builder.mark();
@@ -137,10 +137,17 @@ public class REIExpressions extends ASTWrapperPsiElement {
             stmt.drop();
             return RenpyElementTypes.BINARY;
         }
+        private static boolean isNextOperator(PsiBuilder builder) {
+            if (builder.getTokenType() == RenpyTokenTypes.OPERATOR) return true;
+            if (RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "and", "or")) return true;
+
+            return false;
+        }
 
         private static int getPrecedence(String op) {
             if (op == null) return 0;
             return switch (op) {
+                case "and", "or" -> 3;
                 case "*", "/", "//", "%" -> 2;
                 case "+", "-" -> 1;
                 default -> 0;
