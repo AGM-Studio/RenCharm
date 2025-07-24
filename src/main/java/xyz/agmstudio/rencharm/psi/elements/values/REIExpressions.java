@@ -5,6 +5,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
 
@@ -44,7 +45,7 @@ public class REIExpressions extends ASTWrapperPsiElement {
         }
     }
     public static IElementType getStatement(PsiBuilder builder) {
-        return Binary.getStatement(builder);
+        return Ternary.getStatement(builder);
     }
 
     protected static IElementType getPrimaryStatement(PsiBuilder builder) {
@@ -148,6 +149,41 @@ public class REIExpressions extends ASTWrapperPsiElement {
 
         public static IElementType getStatement(PsiBuilder builder) {
             return getStatement(builder, 0);
+        }
+    }
+    public static class Ternary extends ASTWrapperPsiElement {
+        public Ternary(@NotNull ASTNode node) {
+            super(node);
+        }
+
+        public static @Nullable IElementType getStatement(PsiBuilder builder) {
+            PsiBuilder.Marker expr = builder.mark();
+
+            IElementType condition = Binary.getStatement(builder);
+            if (condition == null) {
+                expr.rollbackTo();
+                return null;
+            }
+
+            if (RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "if")) {
+                builder.advanceLexer();
+
+                IElementType ifExpr = Binary.getStatement(builder);
+                if (ifExpr == null) builder.error("Expected the condition after 'if'");
+
+                if (RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "else")) {
+                    builder.advanceLexer();
+
+                    IElementType elseExpr = Binary.getStatement(builder);
+                    if (elseExpr == null) builder.error("Expected an expression after 'else'");
+                } else builder.error("Expected 'else' in ternary expression");
+
+                expr.done(RenpyElementTypes.TERNARY);
+                return RenpyElementTypes.TERNARY;
+            }
+
+            expr.drop();
+            return condition;
         }
     }
 }

@@ -8,16 +8,18 @@ public interface RenpyElementTypes {
     IElementType BINARY     = new RenpyElement("BINARY_EXPRESSION");
     IElementType GROUP      = new RenpyElement("GROUP_EXPRESSION");
     IElementType TUPLE      = new RenpyElement("TUPLE_EXPRESSION");
-    IElementType BARE_TUPLE = new RenpyElement("TUPLE_EXPRESSION");
+    IElementType BARE_TUPLE = new RenpyElement("BARE_TUPLE_EXPRESSION");
     IElementType LIST       = new RenpyElement("LIST_EXPRESSION");
     IElementType SET        = new RenpyElement("SET_EXPRESSION");
+    IElementType TERNARY    = new RenpyElement("TERNARY_EXPRESSION");
 
     IElementType FUNCTION_CALL  = new RenpyElement("FUNCTION_CALL_EXPRESSION");
     IElementType ARGUMENT_POSED = new RenpyElement("ARGUMENT_POSED_EXPRESSION");
     IElementType ARGUMENT_NAMED = new RenpyElement("ARGUMENT_NAMED_EXPRESSION");
 
     IElementType MEMBER_ACCESS = new RenpyElement("MEMBER_ACCESS");
-    IElementType SUBSCRIPT_ACCESS = new RenpyElement("SUBSCRIPT_ACCESS");
+    IElementType INDEX_ACCESS  = new RenpyElement("INDEX_ACCESS");
+    IElementType SLICE_ACCESS  = new RenpyElement("SLICE_ACCESS");
 
     IElementType DEFINE_STATEMENT = new RenpyElement("DEFINE_STATEMENT");
 

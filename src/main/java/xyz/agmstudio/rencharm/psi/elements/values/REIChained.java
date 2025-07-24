@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class REIChained {
     private static ChainResult consume(PsiBuilder builder) {
         ChainResult result = Membership.consume(builder);
@@ -58,7 +60,9 @@ public class REIChained {
             if (expr == null && builder.getTokenType() != RenpyTokenTypes.COLON)
                 builder.error("Expected index expression or ':'");
 
+            AtomicBoolean slice = new AtomicBoolean(false);
             if (builder.getTokenType() == RenpyTokenTypes.COLON) {
+                slice.set(true);
                 builder.advanceLexer();
                 REIExpressions.getStatement(builder);
                 if (builder.getTokenType() == RenpyTokenTypes.COLON) {
@@ -70,7 +74,7 @@ public class REIChained {
             if (builder.getTokenType() == RenpyTokenTypes.RBRACKET) builder.advanceLexer();
             else builder.error("Expected ']'");
 
-            return new ChainResult(RenpyElementTypes.SUBSCRIPT_ACCESS, false);
+            return new ChainResult(slice.get() ? RenpyElementTypes.SLICE_ACCESS : RenpyElementTypes.INDEX_ACCESS, false);
         }
     }
     public static class Membership extends ASTWrapperPsiElement {
