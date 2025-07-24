@@ -98,7 +98,7 @@ public class REIExpressions extends ASTWrapperPsiElement {
                 return RenpyElementTypes.UNARY;
             }
 
-            return REIChained.getChainedStatement(builder);
+            return REIAccess.getStatement(builder);
         }
     }
     public static class Binary extends ASTWrapperPsiElement {
