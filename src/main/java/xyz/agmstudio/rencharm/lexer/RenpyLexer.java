@@ -101,8 +101,19 @@ public class RenpyLexer extends LexerBase {
         if (match(RenpyTokenTypes.AT, '@')) return;
 
         // Operators & Numbers
-        if (match(RenpyTokenTypes.OPERATOR, '=', '+', '-', '*', '/', '<', '>', '!', '%')) return;
+        if (match(RenpyTokenTypes.OPERATOR, "**=", "//=", "<<=", ">>=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=")) return;
+        if (match(RenpyTokenTypes.OPERATOR, "**", "//", "<<", ">>", "<=", ">=", "==", "!=")) return;
+        if (match(RenpyTokenTypes.OPERATOR, '+', '-', '*', '/', '%', '<', '>', '=', '&', '|', '^', '~')) return;
         if (isNumber()) return;
+
+        for (var entry : MULTI_WORD_KEYWORDS.entrySet()) {
+            String keyword = entry.getKey();
+            if (startsWith(keyword) && isWordBoundary(keyword)) {
+                endOffset += keyword.length();
+                tokenType = entry.getValue();
+                return;
+            }
+        }
 
         if (Character.isLetter(c) || c == '_') {
             int start = endOffset;
@@ -123,19 +134,19 @@ public class RenpyLexer extends LexerBase {
     }
 
     // List of words ---------------------------------------------------------------------------------------------------
+    private static final Map<String, IElementType> MULTI_WORD_KEYWORDS = new HashMap<>();
     private static final Set<String> PRIMARY_KEYWORDS
-            = RenpyLexer.loadKeywords("/keywords/primary.txt");
+            = RenpyLexer.loadKeywords("/keywords/primary.txt", RenpyTokenTypes.PRIMARY_KEYWORD);
     private static final Set<String> RESERVED_KEYWORDS
-            = RenpyLexer.loadKeywords("/keywords/reserved.txt");
+            = RenpyLexer.loadKeywords("/keywords/reserved.txt", RenpyTokenTypes.PRIMARY_KEYWORD);
     private static final Set<String> FUNCTIONAL_KEYWORDS
-            = RenpyLexer.loadKeywords("/keywords/functional.txt");
+            = RenpyLexer.loadKeywords("/keywords/functional.txt", RenpyTokenTypes.FUNCTIONAL_KEYWORD);
     private static final Set<String> STYLE_KEYWORDS
-            = RenpyLexer.loadKeywords("/keywords/style.txt");
+            = RenpyLexer.loadKeywords("/keywords/style.txt", RenpyTokenTypes.STYLE_KEYWORD);
     private static final Set<String> CONSTANT_KEYWORDS
-            = RenpyLexer.loadKeywords("/keywords/constants.txt");
+            = RenpyLexer.loadKeywords("/keywords/constants.txt", RenpyTokenTypes.CONSTANT_KEYWORD);
 
-    private
-    static Set<String> loadKeywords(String resourcePath) {
+    private static Set<String> loadKeywords(String resourcePath, RenpyTokenTypes.RenpyToken token) {
         InputStream stream = RenpyLexer.class.getResourceAsStream(resourcePath);
         if (stream == null) return Collections.emptySet();
         Set<String> keywords = new HashSet<>();
@@ -146,6 +157,7 @@ public class RenpyLexer extends LexerBase {
                 if (end >= 0) line = line.substring(0, end).strip();
                 else line = line.strip();
                 if (!line.isEmpty()) keywords.add(line);
+                if (line.contains(" ")) MULTI_WORD_KEYWORDS.put(line, token);
             }
             return Collections.unmodifiableSet(keywords);
         } catch (Exception e) {
@@ -159,6 +171,17 @@ public class RenpyLexer extends LexerBase {
         for (char c : options) {
             if (c == current) {
                 endOffset++;
+                tokenType = type;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean match(IElementType type, String... options) {
+        for (String op : options) {
+            if (startsWith(op)) {
+                endOffset += op.length();
                 tokenType = type;
                 return true;
             }
@@ -212,9 +235,8 @@ public class RenpyLexer extends LexerBase {
 
     private boolean startsWith(String text) {
         if (endOffset + text.length() > bufferEnd) return false;
-        for (int i = 0; i < text.length(); i++) {
+        for (int i = 0; i < text.length(); i++)
             if (buffer.charAt(endOffset + i) != text.charAt(i)) return false;
-        }
         return true;
     }
 
@@ -246,6 +268,11 @@ public class RenpyLexer extends LexerBase {
 
         tokenType = RenpyTokenTypes.NUMBER;
         return true;
+    }
+
+    private boolean isWordBoundary(String keyword) {
+        int next = endOffset + keyword.length();
+        return next >= bufferEnd || !Character.isJavaIdentifierPart(charAt(next));
     }
 
     private char charAt(int i) {

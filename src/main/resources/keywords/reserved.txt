@@ -10,3 +10,7 @@ with
 not
 and
 or
+is
+in
+not in
+is not

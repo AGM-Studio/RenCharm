@@ -70,7 +70,7 @@ public class REIExpressions extends ASTWrapperPsiElement {
         }
 
         public static IElementType getStatement(PsiBuilder builder) {
-            if (RenpyTokenTypes.OPERATOR.isToken(builder, "+", "-")) {
+            if (RenpyTokenTypes.OPERATOR.isToken(builder, "+", "-", "~")) {
                 PsiBuilder.Marker stmt = builder.mark();
                 builder.advanceLexer();
 
@@ -139,20 +139,29 @@ public class REIExpressions extends ASTWrapperPsiElement {
         }
         private static boolean isNextOperator(PsiBuilder builder) {
             if (builder.getTokenType() == RenpyTokenTypes.OPERATOR) return true;
-            if (RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "and", "or")) return true;
-
-            return false;
+            return RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "and", "or", "is", "is not", "in", "not in");
         }
 
         private static int getPrecedence(String op) {
             if (op == null) return 0;
             return switch (op) {
-                case "and", "or" -> 3;
-                case "*", "/", "//", "%" -> 2;
-                case "+", "-" -> 1;
+                case "**" -> 10;
+                case "*", "/", "//", "%" -> 9;
+                case "+", "-" -> 8;
+                case "<<", ">>" -> 7;
+                case "&" -> 6;
+                case "^" -> 5;
+                case "|" -> 4;
+
+                case "<", "<=", ">", ">=", "==", "!=", "is", "is not", "in", "not in" -> 3;
+
+                case "not" -> 2;
+                case "and", "or" -> 1;
+
                 default -> 0;
             };
         }
+
 
         public static IElementType getStatement(PsiBuilder builder) {
             return getStatement(builder, 0);
