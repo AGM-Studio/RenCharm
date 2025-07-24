@@ -17,6 +17,7 @@ public interface RenpyElementTypes {
     IElementType ARGUMENT_NAMED = new RenpyElement("ARGUMENT_NAMED_EXPRESSION");
 
     IElementType MEMBER_ACCESS = new RenpyElement("MEMBER_ACCESS");
+    IElementType SUBSCRIPT_ACCESS = new RenpyElement("SUBSCRIPT_ACCESS");
 
     IElementType DEFINE_STATEMENT = new RenpyElement("DEFINE_STATEMENT");
 

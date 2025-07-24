@@ -9,21 +9,6 @@ import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
 
 public class REIExpressions extends ASTWrapperPsiElement {
-    public static class Config {
-        public static final Config DEFAULT = new Config(0);
-        public static Config create(int precedence) {
-            return new Config(precedence);
-        }
-
-        final int precedence;
-        private Config(int precedence) {
-            this.precedence = precedence;
-        }
-        public Config withPrecedence(int precedence) {
-            return new Config(precedence);
-        }
-    }
-
     public REIExpressions(@NotNull ASTNode node) {
         super(node);
     }
@@ -58,90 +43,111 @@ public class REIExpressions extends ASTWrapperPsiElement {
             return null;
         }
     }
-
     public static IElementType getStatement(PsiBuilder builder) {
-        return getStatement(builder, Config.DEFAULT);
-    }
-    public static IElementType getStatement(PsiBuilder builder, Config cfg) {
-        PsiBuilder.Marker stmt = builder.mark();
-
-        IElementType left = getUnaryExpression(builder, cfg);
-        if (left == null) {
-            stmt.rollbackTo();
-            return null;
-        }
-
-        while (true) {
-            int operator = getPrecedence(builder.getTokenText());
-            if (builder.getTokenType() != RenpyTokenTypes.OPERATOR || operator < cfg.precedence) break;
-            builder.advanceLexer();
-
-            PsiBuilder.Marker mark = builder.mark();
-            IElementType right = getStatement(builder, cfg.withPrecedence(operator + 1));
-            if (right == null) {
-                mark.rollbackTo();
-                builder.error("Expected expression after operator");
-                break;
-            }
-            mark.drop();
-            stmt.done(RenpyElementTypes.BINARY);
-            stmt = stmt.precede();
-            left = RenpyElementTypes.BINARY;
-        }
-
-        stmt.drop();
-        return left;
-    }
-
-    private static IElementType getUnaryExpression(PsiBuilder builder, Config cfg) {
-        IElementType token = builder.getTokenType();
-        String text = builder.getTokenText();
-        if (text == null) return null;
-        if (RenpyTokenTypes.OPERATOR.isToken(builder, "+", "-") || RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "not")) {
-            PsiBuilder.Marker stmt = builder.mark();
-            builder.advanceLexer();
-
-            IElementType operand = getStatement(builder, Config.create(3));
-            if (operand == null) {
-                stmt.rollbackTo();
-                builder.error("Expected expression after unary operator");
-                return null;
-            }
-
-            stmt.done(RenpyElementTypes.UNARY);
-            return RenpyElementTypes.UNARY;
-        }
-
-        // If not unary operator, fallback to primary expression parsing
-        return getChainedPrimaryStatement(builder);
-    }
-
-    private static int getPrecedence(String token) {
-        if (token == null) return 0;
-        if (token.equals("*") || token.equals("/") || token.equals("//") || token.equals("%")) return 2;
-        if (token.equals("+") || token.equals("-")) return 1;
-        return 0;
-    }
-
-    protected static IElementType getChainedPrimaryStatement(PsiBuilder builder) {
-        IElementType token = REIMemberAccess.getStatement(builder);
-        if (token != null) return token;
-
-        return getPrimaryStatement(builder);
+        return Binary.getStatement(builder);
     }
 
     protected static IElementType getPrimaryStatement(PsiBuilder builder) {
         IElementType token = REIFunctionCall.getStatement(builder);
-        if (token != null) return token;
+        if (token != null) return token; // RenpyElementTypes.FUNCTION_CALL
 
         token = REIGroups.getStatement(builder);
-        if (token != null) return token;
+        if (token != null) return token; // RenpyElementTypes.GROUP, TUPLE, LIST, SET, DICT;
 
         token = builder.getTokenType();
         if (token == RenpyTokenTypes.IDENTIFIER || RenpyTokenTypes.LITERAL_VALUES.contains(token)) {
             builder.advanceLexer();
             return token;
         }
+
         return null;
+    }
+
+    public static class Unary extends ASTWrapperPsiElement {
+        public Unary(@NotNull ASTNode node) {
+            super(node);
+        }
+
+        public static IElementType getStatement(PsiBuilder builder) {
+            if (RenpyTokenTypes.OPERATOR.isToken(builder, "+", "-")) {
+                PsiBuilder.Marker stmt = builder.mark();
+                builder.advanceLexer();
+
+                IElementType expr = getStatement(builder);
+                if (expr == null) {
+                    stmt.rollbackTo();
+                    builder.error("Expected expression after unary operator");
+                    return null;
+                }
+
+                stmt.done(RenpyElementTypes.UNARY);
+                return RenpyElementTypes.UNARY;
+            }
+
+            if (RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "not")) {
+                PsiBuilder.Marker stmt = builder.mark();
+                builder.advanceLexer();
+                IElementType expr = getStatement(builder);
+                if (expr == null) {
+                    stmt.rollbackTo();
+                    builder.error("Expected expression after 'not'");
+                    return null;
+                }
+                stmt.done(RenpyElementTypes.UNARY);
+                return RenpyElementTypes.UNARY;
+            }
+
+            return REIChained.getChainedStatement(builder);
+        }
+    }
+    public static class Binary extends ASTWrapperPsiElement {
+        public Binary(@NotNull ASTNode node) {
+            super(node);
+        }
+
+        public static IElementType getStatement(PsiBuilder builder, int precedence) {
+            PsiBuilder.Marker stmt = builder.mark();
+
+            IElementType left = Unary.getStatement(builder);
+            if (left == null) {
+                stmt.rollbackTo();
+                return null;
+            }
+
+            while (true) {
+                int opp = getPrecedence(builder.getTokenText());
+                if (builder.getTokenType() != RenpyTokenTypes.OPERATOR || opp < precedence) break;
+                builder.advanceLexer();
+
+                PsiBuilder.Marker rightMarker = builder.mark();
+                IElementType right = getStatement(builder, opp + 1);
+
+                if (right == null) {
+                    rightMarker.rollbackTo();
+                    builder.error("Expected expression after operator");
+                    break;
+                }
+
+                rightMarker.drop();
+                stmt.done(RenpyElementTypes.BINARY);
+                stmt = stmt.precede();
+            }
+
+            stmt.drop();
+            return RenpyElementTypes.BINARY;
+        }
+
+        private static int getPrecedence(String op) {
+            if (op == null) return 0;
+            return switch (op) {
+                case "*", "/", "//", "%" -> 2;
+                case "+", "-" -> 1;
+                default -> 0;
+            };
+        }
+
+        public static IElementType getStatement(PsiBuilder builder) {
+            return getStatement(builder, 0);
+        }
     }
 }
