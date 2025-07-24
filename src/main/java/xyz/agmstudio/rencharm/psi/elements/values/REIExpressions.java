@@ -175,13 +175,13 @@ public class REIExpressions extends ASTWrapperPsiElement {
             if (RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "if")) {
                 builder.advanceLexer();
 
-                IElementType ifExpr = Binary.getStatement(builder);
+                IElementType ifExpr = getStatement(builder);
                 if (ifExpr == null) builder.error("Expected the condition after 'if'");
 
                 if (RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "else")) {
                     builder.advanceLexer();
 
-                    IElementType elseExpr = Binary.getStatement(builder);
+                    IElementType elseExpr = getStatement(builder);
                     if (elseExpr == null) builder.error("Expected an expression after 'else'");
                 } else builder.error("Expected 'else' in ternary expression");
 
