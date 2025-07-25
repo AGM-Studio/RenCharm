@@ -6,9 +6,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
+import xyz.agmstudio.rencharm.psi.elements.RenpyElement;
 import xyz.agmstudio.rencharm.resolve.RenpyVariableReference;
 
 public class REIReference extends ASTWrapperPsiElement implements PsiNamedElement {
+    public static final RenpyElement ELEMENT = new RenpyElement("REFERENCE",  REIReference.class);
+
     public REIReference(@NotNull ASTNode node) {
         super(node);
     }

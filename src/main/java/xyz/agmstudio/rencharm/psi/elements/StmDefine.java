@@ -3,18 +3,18 @@ package xyz.agmstudio.rencharm.psi.elements;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
-import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
-import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
-import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
 import xyz.agmstudio.rencharm.psi.elements.values.REIExpressions;
+import xyz.agmstudio.rencharm.psi.elements.values.REIVariable;
 
 import java.util.Objects;
 
 public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
+    public static final RenpyElement STATEMENT = new RenpyElement("DEFINE_STATEMENT", StmDefine.class);
+
     public StmDefine(@NotNull ASTNode node) {
         super(node);
     }
@@ -30,7 +30,7 @@ public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
     }
 
     public PsiElement getIdentifier() {
-        return findChildByType(RenpyTokenTypes.IDENTIFIER);
+        return findChildByType(REIVariable.ELEMENT);
     }
 
     public static void parse(PsiBuilder builder) {
@@ -38,7 +38,11 @@ public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
         PsiBuilder.Marker stmt = builder.mark();
         builder.advanceLexer();
 
-        if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) builder.advanceLexer();
+        if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) {
+            PsiBuilder.Marker marker = builder.mark();
+            builder.advanceLexer();
+            marker.done(REIVariable.ELEMENT);
+        }
         else builder.error("Expected an identifier to be defined.");
         if (builder.getTokenType() == RenpyTokenTypes.OPERATOR && Objects.equals(builder.getTokenText(), "=")) builder.advanceLexer();
         else builder.error("Expected '=' after the identifier but got '" + builder.getTokenText() + "'.");
@@ -53,6 +57,6 @@ public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
             builder.advanceLexer();
         }
 
-        stmt.done(RenpyElementTypes.DEFINE_STATEMENT);
+        stmt.done(STATEMENT);
     }
 }

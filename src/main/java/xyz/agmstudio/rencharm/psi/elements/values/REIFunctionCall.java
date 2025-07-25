@@ -5,10 +5,14 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
-import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
+import xyz.agmstudio.rencharm.psi.elements.RenpyElement;
 
 public class REIFunctionCall extends ASTWrapperPsiElement {
+    public static final RenpyElement ELEMENT        = new RenpyElement("FUNCTION_CALL_EXPRESSION", REIFunctionCall.class);
+    public static final RenpyElement ARGUMENT_POSED = new RenpyElement("ARGUMENT_POSED_EXPRESSION", PosedArgument.class);
+    public static final RenpyElement ARGUMENT_NAMED = new RenpyElement("ARGUMENT_NAMED_EXPRESSION", NamedArgument.class);
+
     public REIFunctionCall(@NotNull ASTNode node) {
         super(node);
     }
@@ -35,12 +39,12 @@ public class REIFunctionCall extends ASTWrapperPsiElement {
                     builder.advanceLexer();
                     IElementType value = REIExpressions.getStatement(builder);
                     if (value == null) builder.error("Expected expression after '='");
-                    argument.done(RenpyElementTypes.ARGUMENT_NAMED);
+                    argument.done(ARGUMENT_NAMED);
                     is_named = true;
                 } else {
                     // It's a positional argument, avoid recalling it by calling it now!
                     if (is_named) builder.error("Unexpected positioned argument.");
-                    argument.done(RenpyElementTypes.ARGUMENT_POSED);
+                    argument.done(ARGUMENT_POSED);
                 }
             } else { // Must be an expression then!
                 IElementType expr = REIExpressions.getStatement(builder);
@@ -50,7 +54,7 @@ public class REIFunctionCall extends ASTWrapperPsiElement {
                     break;
                 } else {
                     if (is_named) builder.error("Unexpected positioned argument.");
-                    argument.done(RenpyElementTypes.ARGUMENT_POSED);
+                    argument.done(ARGUMENT_POSED);
                 }
             }
 
@@ -61,7 +65,18 @@ public class REIFunctionCall extends ASTWrapperPsiElement {
         if (builder.getTokenType() == RenpyTokenTypes.RPAREN) builder.advanceLexer();
         else builder.error("Expected ')' at end of function call.");
 
-        stmt.done(RenpyElementTypes.FUNCTION_CALL);
-        return RenpyElementTypes.FUNCTION_CALL;
+        stmt.done(ELEMENT);
+        return ELEMENT;
+    }
+
+    public static class PosedArgument extends ASTWrapperPsiElement {
+        public PosedArgument(@NotNull ASTNode node) {
+            super(node);
+        }
+    }
+    public static class NamedArgument extends ASTWrapperPsiElement {
+        public NamedArgument(@NotNull ASTNode node) {
+            super(node);
+        }
     }
 }

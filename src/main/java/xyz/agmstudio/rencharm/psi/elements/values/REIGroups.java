@@ -6,20 +6,26 @@ import com.intellij.lang.PsiBuilder;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
+import xyz.agmstudio.rencharm.psi.elements.RenpyElement;
 
 public class REIGroups {
+    public static final RenpyElement GROUP      = new RenpyElement("GROUP_EXPRESSION", Group.class);
+    public static final RenpyElement BARE_TUPLE = new RenpyElement("BARE_TUPLE_EXPRESSION", Tuple.class);
+    public static final RenpyElement TUPLE      = new RenpyElement("TUPLE_EXPRESSION", Tuple.class);
+    public static final RenpyElement LIST       = new RenpyElement("LIST_EXPRESSION", List.class);
+    public static final RenpyElement SET        = new RenpyElement("SET_EXPRESSION", Set.class);
+
     public static @Nullable IElementType getStatement(PsiBuilder builder) {
         IElementType token;
         if (builder.getTokenType() == RenpyTokenTypes.LPAREN) {
             if ((token = getGroupStatement(builder)) != null) return token;
-            else return getSequenceStatement(builder, RenpyElementTypes.TUPLE, RenpyTokenTypes.LPAREN, RenpyTokenTypes.RPAREN, "Expected ')' at the end of tuple");
+            else return getSequenceStatement(builder, TUPLE, RenpyTokenTypes.LPAREN, RenpyTokenTypes.RPAREN, "Expected ')' at the end of tuple");
         }
         if (builder.getTokenType() == RenpyTokenTypes.LBRACKET)
-            return getSequenceStatement(builder, RenpyElementTypes.LIST, RenpyTokenTypes.LBRACKET, RenpyTokenTypes.RBRACKET, "Expected ']' at the end of list");
+            return getSequenceStatement(builder, LIST, RenpyTokenTypes.LBRACKET, RenpyTokenTypes.RBRACKET, "Expected ']' at the end of list");
         if (builder.getTokenType() == RenpyTokenTypes.LBRACE) {
-            token = getSequenceStatement(builder, RenpyElementTypes.SET, RenpyTokenTypes.LBRACE, RenpyTokenTypes.RBRACE, "Expected '}' at the end of set");
+            token = getSequenceStatement(builder, SET, RenpyTokenTypes.LBRACE, RenpyTokenTypes.RBRACE, "Expected '}' at the end of set");
             if (token != null) return token;
             else return null;  // Todo - Dictionaries
         }
@@ -43,8 +49,8 @@ public class REIGroups {
             builder.advanceLexer();
         } else builder.error("Expected ')'");
 
-        group.done(RenpyElementTypes.GROUP);
-        return RenpyElementTypes.GROUP;
+        group.done(GROUP);
+        return GROUP;
     }
     private static @Nullable IElementType getSequenceStatement(PsiBuilder builder, IElementType type, IElementType start, IElementType end, String missing) {
         if (builder.getTokenType() != start) return null;

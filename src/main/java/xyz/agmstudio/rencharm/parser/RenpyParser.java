@@ -5,9 +5,9 @@ import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiParser;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
-import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
 import xyz.agmstudio.rencharm.psi.elements.StmDefine;
+import xyz.agmstudio.rencharm.psi.elements.StmLabel;
 
 public class RenpyParser implements PsiParser {
     @NotNull
@@ -39,7 +39,7 @@ public class RenpyParser implements PsiParser {
 
             parseIndentedBlock(builder);
 
-            stmt.done(RenpyElementTypes.LABEL_STATEMENT);
+            stmt.done(StmLabel.STATEMENT);
         } else {
             builder.advanceLexer(); // skip everything else for now
         }

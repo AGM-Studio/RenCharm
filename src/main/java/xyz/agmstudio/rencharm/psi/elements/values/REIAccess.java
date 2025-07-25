@@ -5,12 +5,16 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
-import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
+import xyz.agmstudio.rencharm.psi.elements.RenpyElement;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class REIAccess {
+    public static final RenpyElement MEMBER_ACCESS  = new RenpyElement("MEMBER_ACCESS", Membership.class);
+    public static final RenpyElement INDEX_ACCESS   = new RenpyElement("INDEX_ACCESS", Index.class);
+    public static final RenpyElement SLICE_ACCESS   = new RenpyElement("SLICE_ACCESS", Slice.class);
+
     public static IElementType getStatement(PsiBuilder builder) {
         PsiBuilder.Marker base = builder.mark();
         IElementType left = REIExpressions.getPrimaryStatement(builder);
@@ -32,8 +36,8 @@ public class REIAccess {
                     builder.advanceLexer();
                 }
 
-                left = RenpyElementTypes.MEMBER_ACCESS;
-                base.done(RenpyElementTypes.MEMBER_ACCESS);
+                left = MEMBER_ACCESS;
+                base.done(MEMBER_ACCESS);
                 base = base.precede();
                 continue;
             }
@@ -59,8 +63,8 @@ public class REIAccess {
                 if (builder.getTokenType() == RenpyTokenTypes.RBRACKET) builder.advanceLexer();
                 else builder.error("Expected ']'");
 
-                left = slice.get() ? RenpyElementTypes.SLICE_ACCESS : RenpyElementTypes.INDEX_ACCESS;
-                base.done(slice.get() ? RenpyElementTypes.SLICE_ACCESS : RenpyElementTypes.INDEX_ACCESS);
+                left = slice.get() ? SLICE_ACCESS : INDEX_ACCESS;
+                base.done(slice.get() ? SLICE_ACCESS : INDEX_ACCESS);
                 base = base.precede();
                 continue;
             }

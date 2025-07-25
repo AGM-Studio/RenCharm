@@ -6,10 +6,14 @@ import com.intellij.lang.PsiBuilder;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
+import xyz.agmstudio.rencharm.psi.elements.RenpyElement;
 
 public class REIExpressions extends ASTWrapperPsiElement {
+    public static final RenpyElement UNARY      = new RenpyElement("UNARY_EXPRESSION", Unary.class);
+    public static final RenpyElement BINARY     = new RenpyElement("BINARY_EXPRESSION", Binary.class);
+    public static final RenpyElement TERNARY    = new RenpyElement("TERNARY_EXPRESSION", Ternary.class);
+
     public REIExpressions(@NotNull ASTNode node) {
         super(node);
     }
@@ -34,8 +38,8 @@ public class REIExpressions extends ASTWrapperPsiElement {
         }
 
         if (exprCount >= 2 || (exprCount == 1 && hasComma)) {
-            stmt.done(RenpyElementTypes.BARE_TUPLE);
-            return RenpyElementTypes.BARE_TUPLE;
+            stmt.done(REIGroups.BARE_TUPLE);
+            return REIGroups.BARE_TUPLE;
         } else if (exprCount == 1) {
             stmt.drop();
             return lastExpr;
@@ -59,8 +63,8 @@ public class REIExpressions extends ASTWrapperPsiElement {
         if (token == RenpyTokenTypes.IDENTIFIER) {
             PsiBuilder.Marker marker = builder.mark();
             builder.advanceLexer();
-            marker.done(RenpyElementTypes.REFERENCE);
-            return RenpyElementTypes.REFERENCE;
+            marker.done(REIReference.ELEMENT);
+            return REIReference.ELEMENT;
         } else if (RenpyTokenTypes.LITERAL_VALUES.contains(token)) {
             builder.advanceLexer();
             return token;
@@ -86,8 +90,8 @@ public class REIExpressions extends ASTWrapperPsiElement {
                     return null;
                 }
 
-                stmt.done(RenpyElementTypes.UNARY);
-                return RenpyElementTypes.UNARY;
+                stmt.done(UNARY);
+                return UNARY;
             }
 
             if (RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, "not")) {
@@ -99,8 +103,8 @@ public class REIExpressions extends ASTWrapperPsiElement {
                     builder.error("Expected expression after 'not'");
                     return null;
                 }
-                stmt.done(RenpyElementTypes.UNARY);
-                return RenpyElementTypes.UNARY;
+                stmt.done(UNARY);
+                return UNARY;
             }
 
             return REIAccess.getStatement(builder);
@@ -135,12 +139,12 @@ public class REIExpressions extends ASTWrapperPsiElement {
                 }
 
                 rightMarker.drop();
-                stmt.done(RenpyElementTypes.BINARY);
+                stmt.done(BINARY);
                 stmt = stmt.precede();
             }
 
             stmt.drop();
-            return RenpyElementTypes.BINARY;
+            return BINARY;
         }
         private static boolean isNextOperator(PsiBuilder builder) {
             if (builder.getTokenType() == RenpyTokenTypes.OPERATOR) return true;
@@ -199,8 +203,8 @@ public class REIExpressions extends ASTWrapperPsiElement {
                     if (elseExpr == null) builder.error("Expected an expression after 'else'");
                 } else builder.error("Expected 'else' in ternary expression");
 
-                expr.done(RenpyElementTypes.TERNARY);
-                return RenpyElementTypes.TERNARY;
+                expr.done(TERNARY);
+                return TERNARY;
             }
 
             expr.drop();
