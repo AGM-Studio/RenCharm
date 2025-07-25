@@ -56,7 +56,12 @@ public class REIExpressions extends ASTWrapperPsiElement {
         if (token != null) return token; // RenpyElementTypes.GROUP, TUPLE, LIST, SET, DICT;
 
         token = builder.getTokenType();
-        if (token == RenpyTokenTypes.IDENTIFIER || RenpyTokenTypes.LITERAL_VALUES.contains(token)) {
+        if (token == RenpyTokenTypes.IDENTIFIER) {
+            PsiBuilder.Marker marker = builder.mark();
+            builder.advanceLexer();
+            marker.done(RenpyElementTypes.REFERENCE);
+            return RenpyElementTypes.REFERENCE;
+        } else if (RenpyTokenTypes.LITERAL_VALUES.contains(token)) {
             builder.advanceLexer();
             return token;
         }

@@ -1,6 +1,7 @@
 package xyz.agmstudio.rencharm.psi;
 
 import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.lang.RenpyFileType;
 
 public interface RenpyElementTypes {
@@ -17,9 +18,10 @@ public interface RenpyElementTypes {
     IElementType ARGUMENT_POSED = new RenpyElement("ARGUMENT_POSED_EXPRESSION");
     IElementType ARGUMENT_NAMED = new RenpyElement("ARGUMENT_NAMED_EXPRESSION");
 
-    IElementType MEMBER_ACCESS = new RenpyElement("MEMBER_ACCESS");
-    IElementType INDEX_ACCESS  = new RenpyElement("INDEX_ACCESS");
-    IElementType SLICE_ACCESS  = new RenpyElement("SLICE_ACCESS");
+    IElementType MEMBER_ACCESS  = new RenpyElement("MEMBER_ACCESS");
+    IElementType INDEX_ACCESS   = new RenpyElement("INDEX_ACCESS");
+    IElementType SLICE_ACCESS   = new RenpyElement("SLICE_ACCESS");
+    IElementType REFERENCE      = new RenpyElement("REFERENCE");
 
     IElementType DEFINE_STATEMENT = new RenpyElement("DEFINE_STATEMENT");
 

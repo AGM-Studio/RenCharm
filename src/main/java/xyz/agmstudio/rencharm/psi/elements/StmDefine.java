@@ -3,7 +3,10 @@ package xyz.agmstudio.rencharm.psi.elements;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
+import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyElementTypes;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
@@ -11,14 +14,23 @@ import xyz.agmstudio.rencharm.psi.elements.values.REIExpressions;
 
 import java.util.Objects;
 
-public class StmDefine extends ASTWrapperPsiElement {
+public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
     public StmDefine(@NotNull ASTNode node) {
         super(node);
     }
 
-    public String getName() {
-        PsiElement id = findChildByType(RenpyTokenTypes.IDENTIFIER);
+    @Override public String getName() {
+        PsiElement id = getIdentifier();
         return id != null ? id.getText() : null;
+    }
+
+    @Override public PsiElement setName(@NotNull String name) {
+        // Optional: implement rename support later
+        return this;
+    }
+
+    public PsiElement getIdentifier() {
+        return findChildByType(RenpyTokenTypes.IDENTIFIER);
     }
 
     public static void parse(PsiBuilder builder) {
