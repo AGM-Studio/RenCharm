@@ -33,6 +33,11 @@
                 implementationClass="xyz.agmstudio.rencharm.highlight.RenpySyntaxHighlighterFactory"
         />
 
+        <lang.findUsagesProvider
+                language="RenPy"
+                implementationClass="xyz.agmstudio.rencharm.resolve.RenpyFindUsagesProvider"
+        />
+
         <colorSettingsPage implementationClass="xyz.agmstudio.rencharm.highlight.RenpyColorSettingsPage"/>
         <postStartupActivity implementation="xyz.agmstudio.rencharm.RenCharmStartupActivity" dumbAware="true" />
     </extensions>
