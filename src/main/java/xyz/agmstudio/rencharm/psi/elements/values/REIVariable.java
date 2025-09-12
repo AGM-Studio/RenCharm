@@ -8,10 +8,11 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.agmstudio.rencharm.psi.elements.RenpyElement;
-import xyz.agmstudio.rencharm.psi.elements.StmDefine;
+import xyz.agmstudio.rencharm.psi.elements.StmDeclaration;
 import xyz.agmstudio.rencharm.resolve.RenpyReferenceMap;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class REIVariable extends ASTWrapperPsiElement implements PsiNamedElement {
@@ -48,11 +49,14 @@ public class REIVariable extends ASTWrapperPsiElement implements PsiNamedElement
 
         @Override public ResolveResult @NotNull [] multiResolve(boolean incompleteCode) {
             String name = getElement().getText();
-            List<StmDefine> defines = RenpyReferenceMap.resolveAll(getElement().getProject(), name);
+            List<StmDeclaration> declarations = RenpyReferenceMap.resolveAll(getElement().getProject(), name);
+
+            declarations.sort(Comparator.comparing(StmDeclaration::getFileName));
+            // Collections.reverse(declarations);
 
             List<ResolveResult> results = new ArrayList<>();
-            for (StmDefine define : defines)
-                results.add(new PsiElementResolveResult(define.getIdentifier(), results.isEmpty()));
+            for (StmDeclaration declaration : declarations)
+                results.add(new PsiElementResolveResult(declaration.getIdentifier(), results.isEmpty()));
 
             return results.toArray(new ResolveResult[0]);
         }

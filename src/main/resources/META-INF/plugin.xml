@@ -40,7 +40,7 @@
 
         <annotator
                 language="RenPy"
-                implementationClass="xyz.agmstudio.rencharm.inspections.RenpyDuplicateDefineAnnotator"
+                implementationClass="xyz.agmstudio.rencharm.inspections.RenpyDuplicateDeclareAnnotator"
         />
 
         <readWriteAccessDetector    implementation="xyz.agmstudio.rencharm.resolve.RenpyAccessDetector"/>

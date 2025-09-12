@@ -3,7 +3,9 @@ package xyz.agmstudio.rencharm.psi.elements;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
@@ -12,13 +14,8 @@ import xyz.agmstudio.rencharm.psi.elements.values.REIVariable;
 
 import java.util.Objects;
 
-/**
- * define IDENTIFIER = VALUE
- */
-public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
-    public static final RenpyElement STATEMENT = new RenpyElement("DEFINE_STATEMENT", StmDefine.class);
-
-    public StmDefine(@NotNull ASTNode node) {
+public abstract class StmDeclaration extends ASTWrapperPsiElement implements PsiNamedElement {
+    public StmDeclaration(@NotNull ASTNode node) {
         super(node);
     }
 
@@ -26,7 +23,6 @@ public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
         PsiElement id = getIdentifier();
         return id != null ? id.getText() : null;
     }
-
     @Override public PsiElement setName(@NotNull String name) {
         // Optional: implement rename support later
         return this;
@@ -36,7 +32,17 @@ public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
         return findChildByType(REIVariable.ELEMENT);
     }
 
-    public static void parse(PsiBuilder builder) {
+    public VirtualFile getContainingFileVirtual() {
+        PsiFile file = getContainingFile();
+        return file != null ? file.getVirtualFile() : null;
+    }
+
+    public String getFileName() {
+        VirtualFile vf = getContainingFileVirtual();
+        return vf != null ? vf.getName() : "";
+    }
+
+    public static PsiBuilder.Marker parse(PsiBuilder builder, RenpyElement element) {
         PsiBuilder.Marker stmt = builder.mark();
         builder.advanceLexer();
 
@@ -59,6 +65,29 @@ public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
             builder.advanceLexer();
         }
 
-        stmt.done(STATEMENT);
+        stmt.done(element);
+        return stmt;
+    }
+
+    /**
+     * default IDENTIFIER = VALUE
+     */
+    public static class Default extends StmDeclaration {
+        public static final RenpyElement STATEMENT = new RenpyElement("DEFAULT_STATEMENT", Default.class);
+
+        public Default(@NotNull ASTNode node) {
+            super(node);
+        }
+    }
+
+    /**
+     * define IDENTIFIER = VALUE
+     */
+    public static class Define extends StmDeclaration {
+        public static final RenpyElement STATEMENT = new RenpyElement("DEFINE_STATEMENT", Define.class);
+
+        public Define(@NotNull ASTNode node) {
+            super(node);
+        }
     }
 }

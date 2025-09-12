@@ -6,7 +6,7 @@ import com.intellij.lang.PsiParser;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
-import xyz.agmstudio.rencharm.psi.elements.StmDefine;
+import xyz.agmstudio.rencharm.psi.elements.StmDeclaration;
 import xyz.agmstudio.rencharm.psi.elements.StmLabel;
 
 public class RenpyParser implements PsiParser {
@@ -18,14 +18,17 @@ public class RenpyParser implements PsiParser {
         return builder.getTreeBuilt();
     }
 
-    private void parseStatement(PsiBuilder builder) {
+    @SuppressWarnings("UnusedReturnValue")
+    private PsiBuilder.Marker parseStatement(PsiBuilder builder) {
         builder.setDebugMode(true);
         if (builder.getTokenType() == RenpyTokenTypes.PRIMARY_KEYWORD) {
             final String key = builder.getTokenText();
+            if (key == null || key.isEmpty()) return null;
             switch (key) {
                 case "define":
-                    StmDefine.parse(builder);
-                    return;
+                    return StmDeclaration.parse(builder, StmDeclaration.Define.STATEMENT);
+                case "default":
+                    return StmDeclaration.parse(builder, StmDeclaration.Default.STATEMENT);
             }
         }
         if (builder.getTokenType() == RenpyTokenTypes.LABEL) {
@@ -43,6 +46,7 @@ public class RenpyParser implements PsiParser {
         } else {
             builder.advanceLexer(); // skip everything else for now
         }
+        return null;
     }
 
     private void parseIndentedBlock(PsiBuilder builder) {
