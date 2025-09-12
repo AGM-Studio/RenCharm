@@ -63,8 +63,8 @@ public class REIExpressions extends ASTWrapperPsiElement {
         if (token == RenpyTokenTypes.IDENTIFIER) {
             PsiBuilder.Marker marker = builder.mark();
             builder.advanceLexer();
-            marker.done(REIReference.ELEMENT);
-            return REIReference.ELEMENT;
+            marker.done(REIVariable.REFERRED);
+            return REIVariable.REFERRED;
         } else if (RenpyTokenTypes.LITERAL_VALUES.contains(token)) {
             builder.advanceLexer();
             return token;

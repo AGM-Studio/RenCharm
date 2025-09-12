@@ -12,6 +12,9 @@ import xyz.agmstudio.rencharm.psi.elements.values.REIVariable;
 
 import java.util.Objects;
 
+/**
+ * define IDENTIFIER = VALUE
+ */
 public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
     public static final RenpyElement STATEMENT = new RenpyElement("DEFINE_STATEMENT", StmDefine.class);
 
@@ -34,7 +37,6 @@ public class StmDefine extends ASTWrapperPsiElement implements PsiNamedElement {
     }
 
     public static void parse(PsiBuilder builder) {
-        // define IDENTIFIER = VALUE;
         PsiBuilder.Marker stmt = builder.mark();
         builder.advanceLexer();
 

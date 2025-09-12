@@ -38,7 +38,13 @@
                 implementationClass="xyz.agmstudio.rencharm.resolve.RenpyFindUsagesProvider"
         />
 
-        <colorSettingsPage implementationClass="xyz.agmstudio.rencharm.highlight.RenpyColorSettingsPage"/>
-        <postStartupActivity implementation="xyz.agmstudio.rencharm.RenCharmStartupActivity" dumbAware="true" />
+        <annotator
+                language="RenPy"
+                implementationClass="xyz.agmstudio.rencharm.inspections.RenpyDuplicateDefineAnnotator"
+        />
+
+        <readWriteAccessDetector    implementation="xyz.agmstudio.rencharm.resolve.RenpyAccessDetector"/>
+        <postStartupActivity        implementation="xyz.agmstudio.rencharm.RenCharmStartupActivity" dumbAware="true" />
+        <colorSettingsPage          implementationClass="xyz.agmstudio.rencharm.highlight.RenpyColorSettingsPage"/>
     </extensions>
 </idea-plugin>

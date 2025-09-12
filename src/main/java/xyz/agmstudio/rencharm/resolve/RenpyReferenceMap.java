@@ -12,10 +12,9 @@ import xyz.agmstudio.rencharm.psi.elements.StmDefine;
 import java.util.*;
 
 public class RenpyReferenceMap {
-    public static Map<String, StmDefine> collectAllDefines(Project project) {
-        Map<String, StmDefine> result = new HashMap<>();
+    public static Map<String, List<StmDefine>> collectAllDefines(Project project) {
+        Map<String, List<StmDefine>> result = new HashMap<>();
         Collection<VirtualFile> renpyFiles = FilenameIndex.getAllFilesByExt(project, "rpy", GlobalSearchScope.projectScope(project));
-
         PsiManager psiManager = PsiManager.getInstance(project);
 
         for (VirtualFile file : renpyFiles) {
@@ -26,7 +25,7 @@ public class RenpyReferenceMap {
             for (StmDefine def : defines) {
                 String name = def.getName();
                 if (name != null && !name.isBlank()) {
-                    result.put(name, def);
+                    result.computeIfAbsent(name, k -> new ArrayList<>()).add(def);
                 }
             }
         }
@@ -34,8 +33,16 @@ public class RenpyReferenceMap {
         return result;
     }
 
+    public static List<StmDefine> resolveAll(Project project, String name) {
+        Map<String, List<StmDefine>> map = collectAllDefines(project);
+        return map.getOrDefault(name, List.of());
+    }
+
     public static StmDefine resolve(Project project, String name) {
-        return collectAllDefines(project).get(name);
+        List<StmDefine> list = resolveAll(project, name);
+        if (list.isEmpty()) return null;
+
+        return list.getFirst();
     }
 
     public static Collection<String> allDefinedNames(Project project) {
