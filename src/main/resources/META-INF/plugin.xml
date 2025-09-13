@@ -43,6 +43,11 @@
                 implementationClass="xyz.agmstudio.rencharm.inspections.RenpyDuplicateDeclareAnnotator"
         />
 
+        <lang.documentationProvider
+                language="RenPy"
+                implementationClass="xyz.agmstudio.rencharm.resolve.RenpyDocumentationProvider"
+        />
+
         <readWriteAccessDetector    implementation="xyz.agmstudio.rencharm.resolve.RenpyAccessDetector"/>
         <postStartupActivity        implementation="xyz.agmstudio.rencharm.RenCharmStartupActivity" dumbAware="true" />
         <colorSettingsPage          implementationClass="xyz.agmstudio.rencharm.highlight.RenpyColorSettingsPage"/>
