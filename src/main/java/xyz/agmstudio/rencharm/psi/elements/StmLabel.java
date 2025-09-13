@@ -19,7 +19,9 @@ public class StmLabel extends ASTWrapperPsiElement {
     private static final HashSet<RenpyElement> ELEMENTS = new HashSet<>();
 
     public static final RenpyElement STATEMENT = new RenpyElement("LABEL_STATEMENT", StmLabel.class);
+
     public static final RenpyElement SAY_STATEMENT = new RenpyElement("SAY_STATEMENT", SayStatement.class, StmLabel.ELEMENTS);
+    public static final RenpyElement RETURN_STATEMENT = new RenpyElement.Singleton("return", ELEMENTS);
 
     public StmLabel(@NotNull ASTNode node) {
         super(node);
@@ -81,6 +83,7 @@ public class StmLabel extends ASTWrapperPsiElement {
      * (IDENTIFIER|STRING)? STRING (ARGUMENTS)?
      */
     public static class SayStatement extends ASTWrapperPsiElement {
+        public static final RenpyElement WHO_VAR = new RenpyElement("WHO_VAR", REIVariable.Referred.class);
         public static final RenpyElement WHO = new RenpyElement("WHO");
         public static final RenpyElement WHAT = new RenpyElement("WHAT");
         
@@ -102,7 +105,7 @@ public class StmLabel extends ASTWrapperPsiElement {
         public static PsiBuilder.Marker parse(PsiBuilder builder) {
             PsiBuilder.Marker stmt = builder.mark();
             boolean hasIdentifier = builder.getTokenType() == RenpyTokenTypes.IDENTIFIER;
-            if (hasIdentifier) markAs(builder, WHO);
+            if (hasIdentifier) markAs(builder, WHO_VAR);
             if (builder.getTokenType() == RenpyTokenTypes.STRING) {
                 if (!hasIdentifier && builder.lookAhead(1) == RenpyTokenTypes.STRING)
                     markAs(builder, WHO);
