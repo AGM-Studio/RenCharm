@@ -60,8 +60,10 @@ public abstract class StmDeclaration extends ASTWrapperPsiElement implements Psi
             builder.error("Expected a value or expression but got '" + builder.getTokenText() + "'.");
 
         // ERROR EVERYTHING except for SEMICOLON till line ends!
-        while (builder.getTokenType() != null && builder.getTokenType() != RenpyTokenTypes.NEWLINE) {
-            if (builder.getTokenType() != RenpyTokenTypes.SEMICOLON) builder.error("Unexpected value '" + builder.getTokenText() + "'.");
+        boolean found = false;
+        while (!RenpyTokenTypes.NEWLINE.isToken(builder)) {
+            if (builder.getTokenType() != RenpyTokenTypes.SEMICOLON || found) builder.error("Unexpected value '" + builder.getTokenText() + "'.");
+            else found = true;
             builder.advanceLexer();
         }
 

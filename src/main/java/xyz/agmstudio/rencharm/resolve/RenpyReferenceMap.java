@@ -33,7 +33,7 @@ public class RenpyReferenceMap {
 
     public static List<StmDeclaration> resolveAll(Project project, String name) {
         Map<String, List<StmDeclaration>> map = collectAllDefines(project);
-        return map.getOrDefault(name, List.of());
+        return map.getOrDefault(name, new ArrayList<>());
     }
 
     public static StmDeclaration resolve(Project project, String name) {

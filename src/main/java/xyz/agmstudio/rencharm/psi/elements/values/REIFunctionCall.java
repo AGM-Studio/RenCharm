@@ -22,10 +22,28 @@ public class REIFunctionCall extends ASTWrapperPsiElement {
         PsiBuilder.Marker stmt = builder.mark();
         builder.advanceLexer();
 
-        if (builder.getTokenType() != RenpyTokenTypes.LPAREN) {
-            stmt.rollbackTo();
-            return null; // It's probably an IDENTIFIER
+        if (parseArguments(builder, ARGUMENT_POSED, ARGUMENT_NAMED)) {
+            stmt.done(ELEMENT);
+            return ELEMENT;
         }
+
+        stmt.rollbackTo();
+        return null; // It's probably an IDENTIFIER
+    }
+
+    public static class PosedArgument extends ASTWrapperPsiElement {
+        public PosedArgument(@NotNull ASTNode node) {
+            super(node);
+        }
+    }
+    public static class NamedArgument extends ASTWrapperPsiElement {
+        public NamedArgument(@NotNull ASTNode node) {
+            super(node);
+        }
+    }
+
+    public static boolean parseArguments(PsiBuilder builder, RenpyElement posed, RenpyElement named) {
+        if (builder.getTokenType() != RenpyTokenTypes.LPAREN) return false;
         builder.advanceLexer();
 
         boolean is_named = false;
@@ -39,12 +57,12 @@ public class REIFunctionCall extends ASTWrapperPsiElement {
                     builder.advanceLexer();
                     IElementType value = REIExpressions.getStatement(builder);
                     if (value == null) builder.error("Expected expression after '='");
-                    argument.done(ARGUMENT_NAMED);
+                    argument.done(named);
                     is_named = true;
                 } else {
                     // It's a positional argument, avoid recalling it by calling it now!
                     if (is_named) builder.error("Unexpected positioned argument.");
-                    argument.done(ARGUMENT_POSED);
+                    argument.done(posed);
                 }
             } else { // Must be an expression then!
                 IElementType expr = REIExpressions.getStatement(builder);
@@ -54,7 +72,7 @@ public class REIFunctionCall extends ASTWrapperPsiElement {
                     break;
                 } else {
                     if (is_named) builder.error("Unexpected positioned argument.");
-                    argument.done(ARGUMENT_POSED);
+                    argument.done(posed);
                 }
             }
 
@@ -63,20 +81,8 @@ public class REIFunctionCall extends ASTWrapperPsiElement {
         }
 
         if (builder.getTokenType() == RenpyTokenTypes.RPAREN) builder.advanceLexer();
-        else builder.error("Expected ')' at end of function call.");
+        else builder.error("Expected ')' at the end of statement.");
 
-        stmt.done(ELEMENT);
-        return ELEMENT;
-    }
-
-    public static class PosedArgument extends ASTWrapperPsiElement {
-        public PosedArgument(@NotNull ASTNode node) {
-            super(node);
-        }
-    }
-    public static class NamedArgument extends ASTWrapperPsiElement {
-        public NamedArgument(@NotNull ASTNode node) {
-            super(node);
-        }
+        return true;
     }
 }

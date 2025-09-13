@@ -17,6 +17,7 @@ import java.util.List;
 
 public class REIVariable extends ASTWrapperPsiElement implements PsiNamedElement {
     public static final RenpyElement ELEMENT = new RenpyElement("VARIABLE", REIVariable.class);
+    public static final RenpyElement LABEL = new RenpyElement("LABEL_VARIABLE", Label.class);
     public static final RenpyElement REFERRED = new RenpyElement("REFERRED",  Referred.class);
 
     public REIVariable(@NotNull ASTNode node) {
@@ -41,6 +42,11 @@ public class REIVariable extends ASTWrapperPsiElement implements PsiNamedElement
         }
     }
 
+    public static class Label extends REIVariable {
+        public Label(@NotNull ASTNode node) {
+            super(node);
+        }
+    }
 
     public static class Referencer extends PsiReferenceBase<PsiElement> implements PsiPolyVariantReference {
         public Referencer(@NotNull PsiElement element) {
@@ -52,7 +58,6 @@ public class REIVariable extends ASTWrapperPsiElement implements PsiNamedElement
             List<StmDeclaration> declarations = RenpyReferenceMap.resolveAll(getElement().getProject(), name);
 
             declarations.sort(Comparator.comparing(StmDeclaration::getFileName));
-            // Collections.reverse(declarations);
 
             List<ResolveResult> results = new ArrayList<>();
             for (StmDeclaration declaration : declarations)

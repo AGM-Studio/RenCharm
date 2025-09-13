@@ -57,8 +57,6 @@ public class RenpySyntaxHighlighter extends SyntaxHighlighterBase {
     @Override
     public TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
         if (tokenType == RenpyTokenTypes.DOLLAR) return KEYWORD_KEYS;
-        if (tokenType == RenpyTokenTypes.LABEL) return KEYWORD_KEYS;
-        if (tokenType == RenpyTokenTypes.SCREEN) return KEYWORD_KEYS;
         if (tokenType == RenpyTokenTypes.PRIMARY_KEYWORD) return KEYWORD_KEYS;
         if (tokenType == RenpyTokenTypes.FUNCTIONAL_KEYWORD) return FUNCTIONAL_KEYWORD_KEYS;
         if (tokenType == RenpyTokenTypes.STYLE_KEYWORD) return STYLE_KEYWORD_KEYS;

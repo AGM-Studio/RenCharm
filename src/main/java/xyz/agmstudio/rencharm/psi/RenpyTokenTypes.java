@@ -22,7 +22,11 @@ public interface RenpyTokenTypes {
     RenpyToken COMMENT    = new RenpyToken("COMMENT");
 
     RenpyToken INDENT     = new RenpyToken("INDENT");
-    RenpyToken NEWLINE    = new RenpyToken("NEWLINE");
+    RenpyToken NEWLINE    = new RenpyToken("NEWLINE") {
+        @Override public boolean isToken(PsiBuilder builder, String... values) {
+            return builder.getTokenType() == null || builder.getTokenType() == this;
+        }
+    };
 
     RenpyToken DOLLAR     = new RenpyToken("DOLLAR");
     RenpyToken COLON      = new RenpyToken("COLON");

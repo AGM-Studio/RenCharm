@@ -29,33 +29,22 @@ public class RenpyParser implements PsiParser {
                     return StmDeclaration.parse(builder, StmDeclaration.Define.STATEMENT);
                 case "default":
                     return StmDeclaration.parse(builder, StmDeclaration.Default.STATEMENT);
+                case "label":
+                    return StmLabel.parse(builder);
             }
         }
-        if (builder.getTokenType() == RenpyTokenTypes.LABEL) {
-            PsiBuilder.Marker stmt = builder.mark();
-            builder.advanceLexer();
 
-            if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) builder.advanceLexer();
-            else builder.error("Expected an identifier for the label.");
-            if (builder.getTokenType() == RenpyTokenTypes.COLON) builder.advanceLexer();
-            else builder.error("Expected ':' after label.");
-
-            parseIndentedBlock(builder);
-
-            stmt.done(StmLabel.STATEMENT);
-        } else {
-            builder.advanceLexer(); // skip everything else for now
-        }
+        builder.advanceLexer(); // skip everything else for now
         return null;
     }
 
     private void parseIndentedBlock(PsiBuilder builder) {
-        while (builder.getTokenType() == RenpyTokenTypes.NEWLINE) builder.advanceLexer();
+        while (RenpyTokenTypes.NEWLINE.isToken(builder)) builder.advanceLexer();
 
         if (builder.getTokenType() == RenpyTokenTypes.INDENT) {
             builder.advanceLexer();
             while (!builder.eof()) {
-                if (builder.getTokenType() == RenpyTokenTypes.NEWLINE) {
+                if (RenpyTokenTypes.NEWLINE.isToken(builder)) {
                     builder.advanceLexer();
                     boolean indent = false;
                     while (builder.getTokenType() == RenpyTokenTypes.INDENT) {
@@ -63,7 +52,7 @@ public class RenpyParser implements PsiParser {
                         indent = true;
                     }
                     while (builder.getTokenType() == RenpyTokenTypes.WHITE_SPACE) builder.advanceLexer();
-                    if (builder.getTokenType() != RenpyTokenTypes.NEWLINE && !indent) break;
+                    if (!RenpyTokenTypes.NEWLINE.isToken(builder) && !indent) break;
                 }
 
                 parseStatement(builder);
