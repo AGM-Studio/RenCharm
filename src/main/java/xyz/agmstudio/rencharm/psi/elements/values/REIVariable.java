@@ -2,13 +2,18 @@ package xyz.agmstudio.rencharm.psi.elements.values;
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
+import com.intellij.lang.documentation.DocumentationMarkup;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.agmstudio.rencharm.psi.elements.RenpyElement;
 import xyz.agmstudio.rencharm.psi.elements.StmDeclaration;
+import xyz.agmstudio.rencharm.resolve.RenpyDocumentationProvider;
 import xyz.agmstudio.rencharm.resolve.RenpyReferenceMap;
 
 import java.util.ArrayList;
@@ -32,8 +37,36 @@ public class REIVariable extends ASTWrapperPsiElement implements PsiNamedElement
         return null;
     }
 
-    @Override public PsiReference getReference() {
+    @Override public Referencer getReference() {
         return new Referencer(this);
+    }
+
+    public String getDoc() {
+        PsiElement resolved = new Referencer(this).resolve();
+        if (resolved == null) return null;
+
+        StmDeclaration declaration = PsiTreeUtil.getParentOfType(resolved, StmDeclaration.class);
+        if (declaration == null) return null;
+
+        StringBuilder result = new StringBuilder(DocumentationMarkup.DEFINITION_START);
+        result.append("<b>Variable defined at: </b><code>");
+
+        PsiFile containingFile = resolved.getContainingFile();
+        VirtualFile vFile = containingFile.getVirtualFile();
+        result.append(vFile != null ? vFile.getName() : "<unknown file>");
+
+        Document doc = PsiDocumentManager.getInstance(resolved.getProject()).getDocument(containingFile);
+        if (doc != null) {
+            int lineNumber = doc.getLineNumber(resolved.getTextOffset()) + 1;
+            result.append(lineNumber > 0 ? ":" + lineNumber : "");
+        }
+
+        result.append("</code><br><pre><code>");
+        RenpyDocumentationProvider.highlightCode(result, resolved.getProject(), resolved.getLanguage(), declaration.getText());
+        result.append("</pre></code>");
+        result.append(DocumentationMarkup.DEFINITION_END);
+
+        return result.toString();
     }
 
     public static class Referred extends REIVariable {
