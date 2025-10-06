@@ -7,6 +7,10 @@ import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.lang.RenpyFileType;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public interface RenpyTokenTypes {
     RenpyToken PRIMARY_KEYWORD    = new RenpyToken("PRIMARY_KEYWORD");
     RenpyToken FUNCTIONAL_KEYWORD = new RenpyToken("FUNCTIONAL_KEYWORD");
@@ -56,5 +60,27 @@ public interface RenpyTokenTypes {
             for (String value: values) if (text.equals(value)) return true;
             return false;
         }
+    }
+
+    static void finishLine(PsiBuilder builder, RenpyToken... skips) {
+        PsiBuilder.Marker unknown = builder.mark();
+        boolean has_unknown = false;
+        List<RenpyToken> skipTokens = new ArrayList<>(Arrays.asList(skips));
+        while (!RenpyTokenTypes.NEWLINE.isToken(builder)) {
+            if (builder.getTokenType() instanceof RenpyToken token && skipTokens.remove(token)) {
+                if (has_unknown) unknown.error("Unexpected value at the end of line.");
+                else unknown.drop();
+
+                builder.advanceLexer();
+                unknown = builder.mark();
+                has_unknown = false;
+            } else {
+                builder.advanceLexer();
+                has_unknown = true;
+            }
+        }
+
+        if (has_unknown) unknown.error("Unexpected value at the end of line.");
+        else unknown.drop();
     }
 }

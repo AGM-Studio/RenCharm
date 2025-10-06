@@ -6,7 +6,8 @@ import com.intellij.lang.PsiBuilder;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import xyz.agmstudio.rencharm.psi.RenpyTokenTypes;
-import xyz.agmstudio.rencharm.psi.elements.values.REIFunctionCall;
+import xyz.agmstudio.rencharm.psi.elements.label.StmDialogue;
+import xyz.agmstudio.rencharm.psi.elements.label.StmShow;
 import xyz.agmstudio.rencharm.psi.elements.values.REIVariable;
 
 import java.util.HashSet;
@@ -16,11 +17,15 @@ import java.util.HashSet;
  *     LABEL_BODY
  */
 public class StmLabel extends ASTWrapperPsiElement {
-    private static final HashSet<RenpyElement> ELEMENTS = new HashSet<>();
-
     public static final RenpyElement STATEMENT = new RenpyElement("LABEL_STATEMENT", StmLabel.class);
 
-    public static final RenpyElement SAY_STATEMENT = new RenpyElement("SAY_STATEMENT", SayStatement.class, StmLabel.ELEMENTS);
+    private static final HashSet<RenpyElement> ELEMENTS = new HashSet<>();
+    static {
+        ELEMENTS.add(StmDialogue.STATEMENT);
+        ELEMENTS.add(StmShow.STATEMENT);
+    }
+
+
     public static final RenpyElement RETURN_STATEMENT = new RenpyElement.Singleton("return", ELEMENTS);
 
     public StmLabel(@NotNull ASTNode node) {
@@ -43,13 +48,7 @@ public class StmLabel extends ASTWrapperPsiElement {
         }
         else builder.error("Expected an identifier to be defined.");
 
-        // ERROR EVERYTHING except for SEMICOLON till line ends!
-        boolean found = false;
-        while (!RenpyTokenTypes.NEWLINE.isToken(builder)) {
-            if (builder.getTokenType() != RenpyTokenTypes.COLON || found) builder.error("Unexpected value '" + builder.getTokenText() + "'.");
-            else found = true;
-            builder.advanceLexer();
-        }
+        RenpyTokenTypes.finishLine(builder, RenpyTokenTypes.COLON);
 
         if (RenpyTokenTypes.NEWLINE.isToken(builder)) builder.advanceLexer();
         while (builder.getTokenType() == RenpyTokenTypes.INDENT) {
@@ -77,53 +76,5 @@ public class StmLabel extends ASTWrapperPsiElement {
 
         unknown.error("Unknown statement inside label.");
         return null;
-    }
-
-    /**
-     * (IDENTIFIER|STRING)? STRING (ARGUMENTS)?
-     */
-    public static class SayStatement extends ASTWrapperPsiElement {
-        public static final RenpyElement WHO_VAR = new RenpyElement("WHO_VAR", REIVariable.Referred.class);
-        public static final RenpyElement WHO = new RenpyElement("WHO");
-        public static final RenpyElement WHAT = new RenpyElement("WHAT");
-        
-        public static final RenpyElement SAY_POSED = new RenpyElement("SAY_POSED_EXPRESSION", REIFunctionCall.PosedArgument.class);
-        public static final RenpyElement SAY_NAMED = new RenpyElement("SAY_NAMED_EXPRESSION", REIFunctionCall.NamedArgument.class);
-
-
-        public SayStatement(@NotNull ASTNode node) {
-            super(node);
-        }
-        
-        private static PsiBuilder.Marker markAs(PsiBuilder builder, RenpyElement element) {
-            PsiBuilder.Marker marker = builder.mark();
-            builder.advanceLexer();
-            marker.done(element);
-            return marker;
-        }
-
-        public static PsiBuilder.Marker parse(PsiBuilder builder) {
-            PsiBuilder.Marker stmt = builder.mark();
-            boolean hasIdentifier = builder.getTokenType() == RenpyTokenTypes.IDENTIFIER;
-            if (hasIdentifier) markAs(builder, WHO_VAR);
-            if (builder.getTokenType() == RenpyTokenTypes.STRING) {
-                if (!hasIdentifier && builder.lookAhead(1) == RenpyTokenTypes.STRING)
-                    markAs(builder, WHO);
-
-                PsiBuilder.Marker marker = markAs(builder, WHAT);
-                boolean hasArguments = REIFunctionCall.parseArguments(builder, SAY_POSED, SAY_NAMED);
-
-                while (!RenpyTokenTypes.NEWLINE.isToken(builder)) {
-                    builder.error("Unexpected value '" + builder.getTokenText() + "' after say statement.");
-                    builder.advanceLexer();
-                }
-
-                stmt.done(SAY_STATEMENT);
-                return stmt;
-            }
-
-            stmt.rollbackTo();
-            return null;
-        }
     }
 }

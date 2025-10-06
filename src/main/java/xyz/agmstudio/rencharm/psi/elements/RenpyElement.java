@@ -70,9 +70,46 @@ public class RenpyElement extends IElementType {
     public ASTWrapperPsiElement create(ASTNode node) {
         return this.elementor.apply(node);
     }
-
     public PsiBuilder.Marker tryParse(PsiBuilder builder) {
         return this.parser.apply(builder);
+    }
+
+    public PsiBuilder.Marker mark(PsiBuilder builder) {
+        PsiBuilder.Marker marker = builder.mark();
+        builder.advanceLexer();
+        marker.done(this);
+        return marker;
+    }
+    public PsiBuilder.Marker mark(PsiBuilder builder, int count) {
+        PsiBuilder.Marker marker = builder.mark();
+        for (int i = 0; i < count; i++)
+            builder.advanceLexer();
+
+        marker.done(this);
+        return marker;
+    }
+    public PsiBuilder.Marker mark(PsiBuilder builder, Function<PsiBuilder, Boolean> predicate) {
+        PsiBuilder.Marker marker = builder.mark();
+        while (predicate.apply(builder))
+            builder.advanceLexer();
+
+        marker.done(this);
+        return marker;
+    }
+
+    public static PsiBuilder.Marker parseKeyword(PsiBuilder builder, String word, Function<PsiBuilder, PsiBuilder.Marker> consume) {
+        if (!RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, word)) return null;
+
+        PsiBuilder.Marker marker = builder.mark();
+        builder.advanceLexer();
+        PsiBuilder.Marker result = consume.apply(builder);
+        if (result == null) {
+            marker.rollbackTo();
+            return null;
+        }
+
+        marker.drop();
+        return result;
     }
 
     public static class Singleton extends RenpyElement {
@@ -98,5 +135,4 @@ public class RenpyElement extends IElementType {
             return null;
         }
     }
-
 }

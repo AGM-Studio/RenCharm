@@ -11,6 +11,8 @@ not
 and
 or
 is
+as
+at
 in
 not in
 is not
