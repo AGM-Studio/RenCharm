@@ -12,21 +12,36 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class RenpyElement extends IElementType {
     private Function<ASTNode, ASTWrapperPsiElement> elementor = null;
     private Function<PsiBuilder, PsiBuilder.Marker> parser = null;
 
+    protected final String keyword;
+    private Consumer<PsiBuilder> consumer = null;
+
     @SafeVarargs
     public RenpyElement(String statement, HashSet<RenpyElement>... sets) {
-        this(statement, null, sets);
+        this(statement, statement.toLowerCase(), null, sets);
+    }
+
+    @SafeVarargs
+    public RenpyElement(String statement, String keyword, HashSet<RenpyElement>... sets) {
+        this(statement, keyword, null, sets);
     }
 
     @SafeVarargs
     public RenpyElement(String statement, Class<? extends ASTWrapperPsiElement> clazz, HashSet<RenpyElement>... sets) {
+        this(statement, statement.toLowerCase(), clazz, sets);
+    }
+
+    @SafeVarargs
+    public RenpyElement(String statement, String keyword, Class<? extends ASTWrapperPsiElement> clazz, HashSet<RenpyElement>... sets) {
         super(statement, RenpyFileType.INSTANCE.getLanguage());
         for (HashSet<RenpyElement> set: sets) set.add(this);
+        this.keyword = keyword;
 
         if (clazz != null) {
             try {
@@ -67,6 +82,48 @@ public class RenpyElement extends IElementType {
         }
     }
 
+    public RenpyElement withConsumer(Consumer<PsiBuilder> consumer) {
+        this.consumer = consumer;
+        return this;
+    }
+    public RenpyElement withIdentifierConsumer() {
+        return withConsumer(builder -> {
+            if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) this.mark(builder);
+            else builder.error("Missing identifier for \"" + keyword + "\" parameter");
+        });
+    }
+    public RenpyElement withMultipleIdentifierConsumer() {
+        return withConsumer(builder -> {
+            if (builder.getTokenType() != RenpyTokenTypes.IDENTIFIER) builder.error("Missing identifier for '" + keyword + "'");
+            else {
+                PsiBuilder.Marker mark = builder.mark();
+                while (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) {
+                    builder.advanceLexer();
+                    if (builder.getTokenType() == RenpyTokenTypes.COMMA) {
+                        if (builder.lookAhead(1) == RenpyTokenTypes.IDENTIFIER) builder.advanceLexer();
+                        else builder.error("Unexpected comma");
+                    } else if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER)
+                        builder.error("Missing comma between parameters");
+                }
+
+                mark.done(this);
+            }
+        });
+    }
+    public RenpyElement withTokenConsumer(RenpyTokenTypes.RenpyToken token) {
+        return withConsumer(builder -> {
+            if (builder.getTokenType() == token) this.mark(builder);
+            else builder.error("Missing \"" + keyword + "\" parameter");
+        });
+    }
+
+    public boolean parseKeyword(PsiBuilder builder) {
+        if (!RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, keyword)) return false;
+        builder.advanceLexer();
+        consumer.accept(builder);
+        return true;
+    }
+
     public ASTWrapperPsiElement create(ASTNode node) {
         return this.elementor.apply(node);
     }
@@ -97,28 +154,10 @@ public class RenpyElement extends IElementType {
         return marker;
     }
 
-    public static PsiBuilder.Marker parseKeyword(PsiBuilder builder, String word, Function<PsiBuilder, PsiBuilder.Marker> consume) {
-        if (!RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, word)) return null;
-
-        PsiBuilder.Marker marker = builder.mark();
-        builder.advanceLexer();
-        PsiBuilder.Marker result = consume.apply(builder);
-        if (result == null) {
-            marker.rollbackTo();
-            return null;
-        }
-
-        marker.drop();
-        return result;
-    }
-
     public static class Singleton extends RenpyElement {
-        private final String keyword;
-
         @SafeVarargs
         public Singleton(String keyword, HashSet<RenpyElement>... sets) {
-            super(keyword.toUpperCase() + "_STATEMENT", null, sets);
-            this.keyword = keyword;
+            super(keyword.toUpperCase() + "_STATEMENT", keyword, null, sets);
         }
 
         @Override public ASTWrapperPsiElement create(ASTNode node) {
