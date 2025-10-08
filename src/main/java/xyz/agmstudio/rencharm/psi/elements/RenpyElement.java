@@ -88,39 +88,36 @@ public class RenpyElement extends IElementType {
     }
     public RenpyElement withIdentifierConsumer() {
         return withConsumer(builder -> {
-            if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) this.mark(builder);
+            if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) builder.advanceLexer();
             else builder.error("Missing identifier for \"" + keyword + "\" parameter");
         });
     }
     public RenpyElement withMultipleIdentifierConsumer() {
         return withConsumer(builder -> {
             if (builder.getTokenType() != RenpyTokenTypes.IDENTIFIER) builder.error("Missing identifier for '" + keyword + "'");
-            else {
-                PsiBuilder.Marker mark = builder.mark();
-                while (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) {
+            else while (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER) {
                     builder.advanceLexer();
                     if (builder.getTokenType() == RenpyTokenTypes.COMMA) {
                         if (builder.lookAhead(1) == RenpyTokenTypes.IDENTIFIER) builder.advanceLexer();
                         else builder.error("Unexpected comma");
                     } else if (builder.getTokenType() == RenpyTokenTypes.IDENTIFIER)
                         builder.error("Missing comma between parameters");
-                }
-
-                mark.done(this);
             }
         });
     }
     public RenpyElement withTokenConsumer(RenpyTokenTypes.RenpyToken token) {
         return withConsumer(builder -> {
-            if (builder.getTokenType() == token) this.mark(builder);
-            else builder.error("Missing \"" + keyword + "\" parameter");
+            if (builder.getTokenType() == token) builder.advanceLexer();
+            else builder.error("Missing parameter for \"" + keyword + "\"");
         });
     }
 
     public boolean parseKeyword(PsiBuilder builder) {
         if (!RenpyTokenTypes.PRIMARY_KEYWORD.isToken(builder, keyword)) return false;
+        PsiBuilder.Marker marker = builder.mark();
         builder.advanceLexer();
         consumer.accept(builder);
+        marker.done(this);
         return true;
     }
 
